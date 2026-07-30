@@ -548,7 +548,10 @@ class ActiveProfileBinder {
           );
         case JellyfinConnection():
           expected.add(conn.serverMachineId);
-          futures.add(_bindJellyfin(conn, profileId: profile.id, generation: generation));
+          final activeConn = (pc.userToken != null && pc.userToken!.isNotEmpty && pc.userToken != conn.accessToken)
+              ? conn.copyWith(accessToken: pc.userToken)
+              : conn;
+          futures.add(_bindJellyfin(activeConn, profileId: profile.id, generation: generation));
       }
     }
     final results = await Future.wait(futures);

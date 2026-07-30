@@ -222,6 +222,7 @@ class JellyfinLibraryQueryTranslator implements LibraryQueryTranslator {
   @override
   Map<String, dynamic> toQueryParameters(LibraryQuery query) {
     final params = <String, dynamic>{
+      'UserId': userId,
       'userId': userId,
       'ParentId': parentId,
       'Recursive': 'true',

@@ -157,15 +157,27 @@ class JellyfinClient
       deviceId: connection.deviceId,
       accessToken: connection.accessToken,
     );
-    final headers = {
-      'Authorization': authHeader,
-      'X-Emby-Token': connection.accessToken,
-      'Accept': 'application/json',
-      // Jellyfin's session reporting endpoints (`/Sessions/Playing*`) reject
-      // any content-type carrying a `; charset=utf-8` suffix with 415 —
-      // pin to the SDK's exact wire format up-front.
-      'Content-Type': 'application/json',
-    };
+    // For Emby servers, sending Authorization: MediaBrowser causes HTTP 500.
+    // Emby only accepts X-Emby-Token (or X-MediaBrowser-Token).
+    // For Jellyfin, we send both the modern Authorization header and the
+    // legacy X-Emby-Token for compatibility with old builds.
+    final headers = connection.isEmby
+        ? {
+            'X-Emby-Authorization': authHeader,
+            'X-Emby-Token': connection.accessToken,
+            'X-MediaBrowser-Token': connection.accessToken,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          }
+        : {
+            'Authorization': authHeader,
+            'X-Emby-Token': connection.accessToken,
+            'Accept': 'application/json',
+            // Jellyfin's session reporting endpoints (`/Sessions/Playing*`) reject
+            // any content-type carrying a `; charset=utf-8` suffix with 415 —
+            // pin to the SDK's exact wire format up-front.
+            'Content-Type': 'application/json',
+          };
     late JellyfinClient client;
     final http = FailoverHttpClient(
       baseUrl: connection.baseUrl,
@@ -320,7 +332,8 @@ class JellyfinClient
   @override
   Future<HealthStatus> checkHealth() async {
     try {
-      final response = await _http.get('/Users/Me', timeout: MediaServerTimeouts.jellyfinProbe);
+      final path = _connection.userId.isNotEmpty ? '/Users/${_connection.userId}' : '/Users/Me';
+      final response = await _http.get(path, timeout: MediaServerTimeouts.jellyfinProbe);
       final ok = response.statusCode >= 200 && response.statusCode < 300;
       if (ok) {
         final data = response.data;
@@ -343,14 +356,17 @@ class JellyfinClient
         }
         return HealthStatus.online;
       }
+      appLogger.w('Jellyfin/Emby checkHealth status ${response.statusCode} for ${_connection.serverName}');
       if (response.statusCode == 401 || response.statusCode == 403) {
         return HealthStatus.authError;
       }
       return HealthStatus.offline;
     } on MediaServerHttpException catch (e) {
+      appLogger.w('Jellyfin/Emby checkHealth MediaServerHttpException status ${e.statusCode} for ${_connection.serverName}: ${e.message}');
       if (e.statusCode == 401 || e.statusCode == 403) return HealthStatus.authError;
       return HealthStatus.offline;
-    } catch (_) {
+    } catch (e, st) {
+      appLogger.w('Jellyfin/Emby checkHealth failed for ${_connection.serverName}', error: e, stackTrace: st);
       return HealthStatus.offline;
     }
   }
@@ -363,7 +379,8 @@ class JellyfinClient
   /// Returns null on transport failures — caller treats as "no preference".
   Future<JellyfinUserProfile?> fetchUserProfile() async {
     try {
-      final response = await _http.get('/Users/Me');
+      final path = connection.userId.isNotEmpty ? '/Users/${connection.userId}' : '/Users/Me';
+      final response = await _http.get(path);
       throwIfHttpError(response);
       final data = response.data;
       if (data is! Map<String, dynamic>) return null;

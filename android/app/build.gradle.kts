@@ -83,12 +83,17 @@ val downloadLibmpv = tasks.register("downloadLibmpv") {
     try {
       staging.mkdirs()
       val stagedAar = File(staging, mpvAar)
-      try {
-        providers.exec {
-          commandLine("curl", "-sfL", mpvUrl, "-o", stagedAar.absolutePath)
-        }.result.get().assertNormalExitValue()
-      } catch (error: Exception) {
-        throw GradleException("Failed to download $mpvAar $mpvVersion", error)
+      val tmpCache = File("/tmp", mpvAar)
+      if (tmpCache.exists()) {
+        tmpCache.copyTo(stagedAar, overwrite = true)
+      } else {
+        try {
+          providers.exec {
+            commandLine("curl", "-sfL", "--retry", "5", mpvUrl, "-o", stagedAar.absolutePath)
+          }.result.get().assertNormalExitValue()
+        } catch (error: Exception) {
+          throw GradleException("Failed to download $mpvAar $mpvVersion", error)
+        }
       }
       verifySha256(stagedAar, mpvSha256, "$mpvAar $mpvVersion")
       File(staging, ".manifest").writeText("version=$mpvVersion\nsha256=$mpvSha256\n")
@@ -158,12 +163,17 @@ val prepareMpvFfmpegDevelopment = tasks.register("prepareMpvFfmpegDevelopment") 
       val includeDir = File(staging, "include")
       val nativeDir = File(staging, "native")
       staging.mkdirs()
-      try {
-        providers.exec {
-          commandLine("curl", "-sfL", mpvFfmpegSourceUrl, "-o", sourceArchive.absolutePath)
-        }.result.get().assertNormalExitValue()
-      } catch (error: Exception) {
-        throw GradleException("Failed to download FFmpeg $mpvFfmpegVersion headers", error)
+      val tmpFfmpegCache = File("/tmp", "ffmpeg-$mpvFfmpegVersion.tar.xz")
+      if (tmpFfmpegCache.exists()) {
+        tmpFfmpegCache.copyTo(sourceArchive, overwrite = true)
+      } else {
+        try {
+          providers.exec {
+            commandLine("curl", "-sfL", "--retry", "5", mpvFfmpegSourceUrl, "-o", sourceArchive.absolutePath)
+          }.result.get().assertNormalExitValue()
+        } catch (error: Exception) {
+          throw GradleException("Failed to download FFmpeg $mpvFfmpegVersion headers", error)
+        }
       }
       verifySha256(sourceArchive, mpvFfmpegSourceSha256, "FFmpeg $mpvFfmpegVersion source")
 

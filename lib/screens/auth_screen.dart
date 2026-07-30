@@ -242,6 +242,14 @@ class _AuthScreenState extends State<AuthScreen> {
     unawaited(Navigator.pushReplacement(context, fadeRoute(const ProfileSessionScreen())));
   }
 
+  Future<void> _connectToEmby() async {
+    if (!await _prepareDatabaseRecoveryForSignIn()) return;
+    if (!mounted) return;
+    final added = await Navigator.push<bool>(context, MaterialPageRoute(builder: (_) => const AddJellyfinScreen(isEmby: true)));
+    if (!mounted || added != true) return;
+    unawaited(Navigator.pushReplacement(context, fadeRoute(const ProfileSessionScreen())));
+  }
+
   void _showDebugTokenDialog() {
     showDialog<void>(
       context: context,
@@ -429,6 +437,16 @@ class _AuthScreenState extends State<AuthScreen> {
             style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
             icon: const BackendBadge(backend: MediaBackend.jellyfin, size: 18),
             label: Text(t.auth.connectToJellyfin),
+          ),
+        ),
+        const SizedBox(height: 12),
+        FocusableButton(
+          onPressed: _connectToEmby,
+          child: OutlinedButton.icon(
+            onPressed: _connectToEmby,
+            style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+            icon: const BackendBadge(backend: MediaBackend.jellyfin, size: 18),
+            label: const Text('Emby ile Bağlan'),
           ),
         ),
         if (kDebugMode) ...[

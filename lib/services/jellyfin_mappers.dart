@@ -322,16 +322,19 @@ class JellyfinMappers {
     final ct = collectionType?.trim().toLowerCase();
     if (ct != null && ct.isNotEmpty) {
       return switch (ct) {
-        'movies' => MediaKind.movie,
-        'tvshows' => MediaKind.show,
-        'music' => MediaKind.artist,
+        'movies' || 'movie' => MediaKind.movie,
+        'tvshows' || 'shows' || 'series' || 'tv' => MediaKind.show,
+        'music' || 'audio' => MediaKind.artist,
         'musicvideos' => MediaKind.clip,
-        'homevideos' => MediaKind.clip,
-        'photos' => MediaKind.photo,
+        'homevideos' || 'photos' || 'folders' || 'video' || 'videos' || 'mixed' => MediaKind.clip,
         'boxsets' => MediaKind.collection,
         'playlists' => MediaKind.playlist,
-        _ => MediaKind.unknown,
+        _ => MediaKind.movie,
       };
+    }
+    final t = type?.trim().toLowerCase();
+    if (t == 'collectionfolder' || t == 'userview' || t == 'folder') {
+      return MediaKind.movie;
     }
     return MediaKind.fromString(type);
   }

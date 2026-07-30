@@ -112,6 +112,7 @@ class JellyfinConnectionAuthService {
     required String password,
     required String deviceId,
     JellyfinServerInfo? serverInfo,
+    bool isEmby = false,
   }) async {
     final validDeviceId = requireJellyfinDeviceId(deviceId);
     final normalised = _normaliseBaseUrl(baseUrl);
@@ -123,9 +124,14 @@ class JellyfinConnectionAuthService {
       deviceName: deviceName,
       deviceId: validDeviceId,
     );
+    // Emby servers return 500 when they receive Authorization: MediaBrowser.
+    // Only send that header for Jellyfin; Emby only needs X-Emby-Token.
+    final requestHeaders = isEmby
+        ? {'X-Emby-Authorization': authHeader, 'Content-Type': 'application/json'}
+        : {'Authorization': authHeader, 'Content-Type': 'application/json'};
     final client = _buildHttpClient(
       baseUrl: normalised,
-      headers: {'Authorization': authHeader, 'Content-Type': 'application/json'},
+      headers: requestHeaders,
     );
     try {
       final auth = await _readAuthenticationResponse(
@@ -134,7 +140,7 @@ class JellyfinConnectionAuthService {
           body: jsonEncode({'Username': username, 'Pw': password}),
           timeout: MediaServerTimeouts.jellyfinProbe,
         ),
-        rejectedStatusCodes: const {401, 403},
+        rejectedStatusCodes: const {400, 401, 403},
         rejectionMessage: 'Invalid username or password',
         responseLabel: 'Authentication response',
         notJsonMessage: 'Authentication response was not JSON',
@@ -149,6 +155,7 @@ class JellyfinConnectionAuthService {
         accessToken: auth.accessToken,
         deviceId: validDeviceId,
         isAdministrator: auth.isAdministrator,
+        isEmby: isEmby,
       );
     } finally {
       client.close();
@@ -366,18 +373,24 @@ class JellyfinConnectionAuthService {
 
   MediaServerHttpClient _authenticatedClient(JellyfinConnection connection) {
     LogRedactionManager.registerToken(connection.accessToken);
+    final authHeader = buildJellyfinAuthHeader(
+      clientName: clientName,
+      clientVersion: clientVersion,
+      deviceName: deviceName,
+      deviceId: connection.deviceId,
+      accessToken: connection.accessToken,
+    );
     return _buildHttpClient(
       baseUrl: connection.baseUrl,
-      headers: {
-        'X-Emby-Token': connection.accessToken,
-        'Authorization': buildJellyfinAuthHeader(
-          clientName: clientName,
-          clientVersion: clientVersion,
-          deviceName: deviceName,
-          deviceId: connection.deviceId,
-          accessToken: connection.accessToken,
-        ),
-      },
+      headers: connection.isEmby
+          ? {
+              'X-Emby-Authorization': authHeader,
+              'X-Emby-Token': connection.accessToken,
+            }
+          : {
+              'Authorization': authHeader,
+              'X-Emby-Token': connection.accessToken,
+            },
     );
   }
 
@@ -445,6 +458,7 @@ class JellyfinConnectionAuthService {
     required String accessToken,
     required String deviceId,
     required bool isAdministrator,
+    bool isEmby = false,
   }) {
     final now = DateTime.now();
     return JellyfinConnection(
@@ -458,6 +472,7 @@ class JellyfinConnectionAuthService {
       accessToken: accessToken,
       deviceId: deviceId,
       isAdministrator: isAdministrator,
+      isEmby: isEmby,
       status: ConnectionStatus.online,
       createdAt: now,
       lastAuthenticatedAt: now,

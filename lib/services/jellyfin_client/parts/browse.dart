@@ -1234,8 +1234,11 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
 
   @override
   Future<List<MediaItem>> fetchContinueWatching({int? count = 20}) async {
+    final resumePath = connection.isEmby
+        ? '/Users/${_segment(connection.userId)}/Items/Resume'
+        : '/UserItems/Resume';
     final results = await Future.wait([
-      _fetchItemsArray('/UserItems/Resume', {
+      _safeFetchItemsArray(resumePath, {
         'userId': connection.userId,
         'Limit': ?count?.toString(),
         'Fields': _browseFields,
@@ -1345,6 +1348,8 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
       'ParentId': ?parentId,
       'Fields': _browseFields,
       'IncludeItemTypes': ?latestItemTypes,
+      'UserId': connection.userId,
+      'userId': connection.userId,
       ...jellyfinImageQueryParameters,
     }, retry: retry);
 
@@ -1367,7 +1372,8 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
 
     final results = await Future.wait([
       latestFuture,
-      _safeFetchItemsArray('/UserItems/Resume', {
+      _safeFetchItemsArray('/Users/${_segment(connection.userId)}/Items/Resume', {
+        'UserId': connection.userId,
         'userId': connection.userId,
         'ParentId': ?parentId,
         'Limit': limit.toString(),
@@ -1379,6 +1385,7 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
       }, retry: retry),
       includeNextUp
           ? _safeFetchItemsArray('/Shows/NextUp', {
+              'UserId': connection.userId,
               'userId': connection.userId,
               'ParentId': ?parentId,
               'Limit': limit.toString(),
@@ -1551,7 +1558,9 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
         );
       case 'continue':
         return _safeFetchMediaPage(
-          '/UserItems/Resume',
+          connection.isEmby
+              ? '/Users/${_segment(connection.userId)}/Items/Resume'
+              : '/UserItems/Resume',
           {
             'userId': connection.userId,
             'StartIndex': offset.toString(),

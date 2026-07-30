@@ -46,7 +46,9 @@ mixin _JellyfinWatchStateMethods on _JellyfinClientInternals {
   /// Toggle the per-user `IsFavorite` flag for [itemId]. Backs [setFavorite]
   /// and the live-TV favorite-channel adapter; works on any Jellyfin item.
   Future<void> _setItemFavorite(String itemId, bool isFavorite) async {
-    final path = '/UserFavoriteItems/${_segment(itemId)}';
+    final path = connection.isEmby
+        ? '/Users/${_segment(connection.userId)}/FavoriteItems/${_segment(itemId)}'
+        : '/UserFavoriteItems/${_segment(itemId)}';
     final response = isFavorite
         ? await _http.post(path, queryParameters: {'userId': connection.userId})
         : await _http.delete(path, queryParameters: {'userId': connection.userId});

@@ -69,7 +69,7 @@ bool shouldPromptForJellyfinProfileSelection({
   return targetProfile == null && activeProfile == null && hasProfiles;
 }
 
-/// Three-step form to add a Jellyfin server:
+/// Three-step form to add a Jellyfin/Emby server:
 ///   1. Probe URL candidates (`/System/Info/Public`).
 ///   2. Username + password (`/Users/AuthenticateByName`) **or** Quick Connect
 ///      (`/QuickConnect/Initiate` → poll → `/Users/AuthenticateWithQuickConnect`).
@@ -83,12 +83,18 @@ class AddJellyfinScreen extends StatefulWidget {
   /// [ProfileConnection] row. When null, falls back to the currently active
   /// profile (typical for the global Connections screen entry point).
   final Profile? targetProfile;
+
+  /// When true, the screen is in Emby mode: the title shows "Emby" and
+  /// the auth call skips the Jellyfin-only Authorization header.
+  final bool isEmby;
+
   final FutureOr<JellyfinConnectionAuthService> Function()? _authServiceFactory;
   final FutureOr<List<DiscoveredJellyfinServer>> Function()? _localDiscoveryFactory;
 
   const AddJellyfinScreen({
     super.key,
     this.targetProfile,
+    this.isEmby = false,
     @visibleForTesting this._authServiceFactory,
     @visibleForTesting this._localDiscoveryFactory,
   });
@@ -261,6 +267,7 @@ class _AddJellyfinScreenState extends State<AddJellyfinScreen> with AsyncFormSta
           password: _passwordController.text,
           deviceId: deviceId,
           serverInfo: info,
+          isEmby: widget.isEmby,
         );
 
         if (!mounted) return;
@@ -268,7 +275,7 @@ class _AddJellyfinScreenState extends State<AddJellyfinScreen> with AsyncFormSta
       },
       errorMapper: (e) {
         if (e is MediaServerAuthException) return e.message;
-        appLogger.e('Add Jellyfin failed', error: e);
+        appLogger.e('Add Jellyfin/Emby failed', error: e);
         return t.addServer.signInFailed(error: e.toString());
       },
     );
@@ -454,8 +461,9 @@ class _AddJellyfinScreenState extends State<AddJellyfinScreen> with AsyncFormSta
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final screenTitle = widget.isEmby ? 'Emby Sunucusu Ekle' : t.addServer.addJellyfinTitle;
     return FocusedScrollScaffold(
-      title: Text(t.addServer.addJellyfinTitle),
+      title: Text(screenTitle),
       slivers: [
         if (_qcInitiation != null)
           SliverFillRemaining(
@@ -609,7 +617,7 @@ class _AddJellyfinScreenState extends State<AddJellyfinScreen> with AsyncFormSta
               children: [
                 Text(_serverInfo!.serverName, style: theme.textTheme.titleSmall),
                 Text(
-                  'Jellyfin ${_serverInfo!.version}',
+                  '${widget.isEmby ? "Emby" : "Jellyfin"} ${_serverInfo!.version}',
                   style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
                 ),
               ],

@@ -709,13 +709,14 @@ class MultiServerManager {
       _jellyfinHealthByCompoundId[compoundId] = health;
       _applyHealth(ServerId(machineId), health);
 
-      appLogger.i('Added Jellyfin server: ${resolvedConnection.serverName}${healthy ? '' : ' (unhealthy)'}');
+      final serverKind = resolvedConnection.isEmby ? 'Emby' : 'Jellyfin';
+      appLogger.i('Added $serverKind server: ${resolvedConnection.serverName}${healthy ? '' : ' (unhealthy)'}');
       if (_connectivitySubscription == null && healthy) {
         _startNetworkMonitoring();
       }
       return healthy;
     } catch (e, stackTrace) {
-      appLogger.e('Failed to add Jellyfin server ${connection.serverName}', error: e, stackTrace: stackTrace);
+      appLogger.e('Failed to add ${connection.isEmby ? "Emby" : "Jellyfin"} server ${connection.serverName}', error: e, stackTrace: stackTrace);
       return false;
     }
   }
@@ -770,8 +771,9 @@ class MultiServerManager {
       _emitStatus();
     }
     final healthy = health == HealthStatus.online;
+    final kind = client.connection.isEmby ? 'Emby' : 'Jellyfin';
     appLogger.i(
-      'Reusing existing Jellyfin client for ${client.connection.serverName}'
+      'Reusing existing $kind client for ${client.connection.serverName}'
       '${healthy ? '' : ' (unhealthy)'} (connection unchanged)',
     );
     if (_connectivitySubscription == null && healthy) {
