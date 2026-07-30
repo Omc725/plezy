@@ -250,7 +250,13 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
     // (ParentId, StartIndex, Limit, SortBy/SortOrder, NameStartsWith/
     // NameLessThan, Filters, Fields) and ignores the /Items-only keys.
     final isArtistQuery = query.kind == MediaKind.artist;
-    final endpoint = isArtistQuery ? '/Artists/AlbumArtists' : '/Items';
+    // Emby's /Items endpoint can return HTTP 500 for certain query combinations.
+    // Using /Users/{userId}/Items is more reliable on Emby 4.x servers.
+    final endpoint = isArtistQuery
+        ? '/Artists/AlbumArtists'
+        : connection.isEmby
+            ? '/Users/${_segment(connection.userId)}/Items'
+            : '/Items';
     if (isArtistQuery) {
       params.remove('IncludeItemTypes');
       params.remove('Recursive');
@@ -341,6 +347,8 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
   }
 
   Future<Map<String, dynamic>?> _safeFetchFilterPayload(String libraryId) async {
+    // Emby does not support /Items/Filters — skip silently.
+    if (connection.isEmby) return null;
     try {
       final response = await _http.get(
         '/Items/Filters',
@@ -1370,19 +1378,24 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
       return [hub('recent', recentTitle, 'mixed', latest)].where((h) => h.items.isNotEmpty).toList();
     }
 
+    // Emby 4.x returns HTTP 500 for /Users/{userId}/Items/Resume in library context;
+    // skip it and return an empty list so the hub still renders latest/next-up.
+    final resumeFuture = connection.isEmby
+        ? Future.value(const <Map<String, dynamic>>[])
+        : _safeFetchItemsArray('/Users/${_segment(connection.userId)}/Items/Resume', {
+            'UserId': connection.userId,
+            'userId': connection.userId,
+            'ParentId': ?parentId,
+            'Limit': limit.toString(),
+            'Fields': _browseFields,
+            'MediaTypes': 'Video',
+            'Recursive': 'true',
+            'EnableTotalRecordCount': 'false',
+            ...jellyfinImageQueryParameters,
+          }, retry: retry);
     final results = await Future.wait([
       latestFuture,
-      _safeFetchItemsArray('/Users/${_segment(connection.userId)}/Items/Resume', {
-        'UserId': connection.userId,
-        'userId': connection.userId,
-        'ParentId': ?parentId,
-        'Limit': limit.toString(),
-        'Fields': _browseFields,
-        'MediaTypes': 'Video',
-        'Recursive': 'true',
-        'EnableTotalRecordCount': 'false',
-        ...jellyfinImageQueryParameters,
-      }, retry: retry),
+      resumeFuture,
       includeNextUp
           ? _safeFetchItemsArray('/Shows/NextUp', {
               'UserId': connection.userId,
