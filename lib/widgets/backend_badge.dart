@@ -11,8 +11,9 @@ class BackendBadge extends StatelessWidget {
   final MediaBackend backend;
   final double size;
   final Color? color;
+  final bool isEmby;
 
-  const BackendBadge({super.key, required this.backend, this.size = 16, this.color});
+  const BackendBadge({super.key, required this.backend, this.size = 16, this.color, this.isEmby = false});
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +22,12 @@ class BackendBadge extends StatelessWidget {
         DefaultTextStyle.of(context).style.color ??
         IconTheme.of(context).color ??
         Theme.of(context).colorScheme.onSurface;
-    final asset = switch (backend) {
-      MediaBackend.plex => 'assets/plex_chevron.svg',
-      MediaBackend.jellyfin => 'assets/jellyfin_icon.svg',
-    };
+    final asset = isEmby
+        ? 'assets/emby_icon.svg'
+        : switch (backend) {
+            MediaBackend.plex => 'assets/plex_chevron.svg',
+            MediaBackend.jellyfin => 'assets/jellyfin_icon.svg',
+          };
     return SvgPicture.asset(
       asset,
       width: size,

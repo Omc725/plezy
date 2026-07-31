@@ -517,7 +517,7 @@ class _AddJellyfinScreenState extends State<AddJellyfinScreen> with AsyncFormSta
         decoration: InputDecoration(
           labelText: t.addServer.serverUrls,
           // URL example — intentionally not localized.
-          hintText: 'https://jellyfin.example.com',
+          hintText: widget.isEmby ? 'https://emby.example.com' : 'https://jellyfin.example.com',
           helperText: _serverInfo == null ? t.addServer.serverUrlsHelper : null,
           prefixIcon: const AppIcon(Symbols.link_rounded, fill: 1),
         ),

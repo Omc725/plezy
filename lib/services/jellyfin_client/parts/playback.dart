@@ -276,7 +276,12 @@ mixin _JellyfinPlaybackMethods on _JellyfinClientInternals {
     final pinnedSourceId = bundle.pinnedSourceIdForItem(metadata.id);
     videoUrl ??= isTrack
         ? buildAudioDirectStreamUrl(metadata.id, container: effectiveContainer, mediaSourceId: pinnedSourceId)
-        : buildDirectStreamUrl(metadata.id, container: effectiveContainer, mediaSourceId: pinnedSourceId);
+        : buildDirectStreamUrl(
+            metadata.id,
+            container: effectiveContainer,
+            mediaSourceId: pinnedSourceId,
+            audioStreamIndex: effectiveAudioStreamId,
+          );
 
     return PlaybackInitializationResult(
       availableVersions: bundle.availableVersions,
@@ -405,7 +410,7 @@ mixin _JellyfinPlaybackMethods on _JellyfinClientInternals {
     final codec = track.codec;
     if (sourceId == null || codec == null || codec.isEmpty) return null;
     final path = Uri(
-      pathSegments: ['Videos', itemId, sourceId, 'Subtitles', streamIndex.toString(), 'Stream.$codec'],
+      pathSegments: ['Videos', itemId, sourceId, 'Subtitles', streamIndex.toString(), '0', 'Stream.$codec'],
     ).path;
     return path.startsWith('/') ? path : '/$path';
   }

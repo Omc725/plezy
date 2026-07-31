@@ -250,8 +250,6 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
     // (ParentId, StartIndex, Limit, SortBy/SortOrder, NameStartsWith/
     // NameLessThan, Filters, Fields) and ignores the /Items-only keys.
     final isArtistQuery = query.kind == MediaKind.artist;
-    // Emby's /Items endpoint can return HTTP 500 for certain query combinations.
-    // Using /Users/{userId}/Items is more reliable on Emby 4.x servers.
     final endpoint = isArtistQuery
         ? '/Artists/AlbumArtists'
         : connection.isEmby
@@ -261,8 +259,28 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
       params.remove('IncludeItemTypes');
       params.remove('Recursive');
     }
+    if (connection.isEmby) {
+      params.remove('UserId');
+      params.remove('userId');
+      if (params['Fields'] is String) {
+        params['Fields'] = (params['Fields'] as String)
+            .replaceAll('RecursiveItemCount,', '')
+            .replaceAll('ChildCount,', '')
+            .replaceAll(',RecursiveItemCount', '')
+            .replaceAll(',ChildCount', '');
+      }
+    }
 
-    final response = await _http.get(endpoint, queryParameters: params, abort: abort);
+    final response = await () async {
+      try {
+        return await _http.get(endpoint, queryParameters: params, abort: abort);
+      } catch (e) {
+        if (connection.isEmby && endpoint != '/Items') {
+          return await _http.get('/Items', queryParameters: params, abort: abort);
+        }
+        rethrow;
+      }
+    }();
     throwIfHttpError(response);
     final data = response.data;
     final items = _itemsArray(data);

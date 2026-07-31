@@ -454,7 +454,7 @@ class _ConnectionsListState extends State<_ConnectionsList> {
                   children: [
                     if (parentConn != null)
                       ListTile(
-                        leading: BackendBadge(backend: parentConn.backend, size: 24),
+                        leading: BackendBadge(backend: parentConn.backend, isEmby: parentConn.isEmby, size: 24),
                         title: Text(parentConn.displayLabel),
                         subtitle: Text(t.profiles.plexHomeAccount),
                         trailing: FocusablePopupMenuButton<String>(
@@ -471,7 +471,7 @@ class _ConnectionsListState extends State<_ConnectionsList> {
                     for (final pc in visiblePcs)
                       if (byId[pc.connectionId] case final conn?)
                         ListTile(
-                          leading: BackendBadge(backend: conn.backend, size: 24),
+                          leading: BackendBadge(backend: conn.backend, isEmby: conn.isEmby, size: 24),
                           title: Text(conn.displayLabel),
                           subtitle: _ConnectionSubtitle.build(conn: conn, pc: pc, homeCache: homeCache, theme: theme),
                           trailing: FocusablePopupMenuButton<String>(

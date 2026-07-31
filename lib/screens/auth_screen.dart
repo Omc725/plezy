@@ -445,7 +445,7 @@ class _AuthScreenState extends State<AuthScreen> {
           child: OutlinedButton.icon(
             onPressed: _connectToEmby,
             style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
-            icon: const BackendBadge(backend: MediaBackend.jellyfin, size: 18),
+            icon: const BackendBadge(backend: MediaBackend.jellyfin, isEmby: true, size: 18),
             label: const Text('Emby ile Bağlan'),
           ),
         ),

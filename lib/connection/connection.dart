@@ -48,6 +48,9 @@ sealed class Connection {
   /// (badges, etc.). Just a passthrough to [kind.backend].
   MediaBackend get backend => kind.backend;
 
+  /// Whether this is an Emby server connection.
+  bool get isEmby => this is JellyfinConnection && (this as JellyfinConnection).isEmby;
+
   /// Primary label shown in connection-list UIs. Plex shows the active
   /// profile/account name; Jellyfin shows the server name.
   String get displayLabel;

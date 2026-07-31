@@ -22,6 +22,7 @@ import 'api_cache.dart';
 import 'download_artwork_helpers.dart';
 import 'download_artwork_service.dart';
 import 'jellyfin_cache_resolver.dart';
+import 'jellyfin_client.dart';
 import 'plex_api_cache.dart';
 import 'settings_service.dart';
 import 'saf_storage_service.dart';
@@ -1792,13 +1793,28 @@ class DownloadManagerService {
             throw Exception('Failed to create SAF directory');
           }
 
-          await _cleanupSafTargetFile(safDirUri, target.fileName);
+          Map<String, String>? taskHeaders;
+          if (client is JellyfinClient) {
+            final conn = client.connection;
+            if (conn.isEmby) {
+              taskHeaders = {
+                'X-Emby-Token': conn.accessToken,
+                'X-Emby-Authorization': 'MediaBrowser Client="Plezy", Device="Android", DeviceId="${conn.deviceId}", Version="2.11.0"',
+              };
+            } else {
+              taskHeaders = {
+                'X-Emby-Token': conn.accessToken,
+                'X-Jellyfin-Authorization': 'MediaBrowser Client="Plezy", Device="Android", DeviceId="${conn.deviceId}", Version="2.11.0"',
+              };
+            }
+          }
 
           task = UriDownloadTask(
             url: resolution.videoUrl!,
             filename: target.fileName,
             directoryUri: Uri.parse(safDirUri),
             group: _downloadGroup,
+            headers: taskHeaders,
             updates: Updates.statusAndProgress,
             requiresWiFi: requiresWiFi,
             retries: _nativeRetries,
@@ -1821,14 +1837,28 @@ class DownloadManagerService {
             downloadFilePath = await _storageService.getVideoFilePath(serverId, metadata.id, ext);
           }
 
-          // Clean up partial files from previous attempts to prevent
-          // background_downloader from creating numbered copies (File (1).mp4).
-          await Future.wait([
-            _deleteFileIfExists(File(downloadFilePath), 'stale video before re-download'),
-            _deleteFileIfExists(File('$downloadFilePath.part'), 'stale .part before re-download'),
-          ]);
+          // Clean up completed video files from previous failed runs, but keep
+          // the .part file so background_downloader can resume downloading
+          // via HTTP Range headers without restarting from 0%.
+          await _deleteFileIfExists(File(downloadFilePath), 'stale video before re-download');
 
           await File(downloadFilePath).parent.create(recursive: true);
+
+          Map<String, String>? taskHeaders;
+          if (client is JellyfinClient) {
+            final conn = client.connection;
+            if (conn.isEmby) {
+              taskHeaders = {
+                'X-Emby-Token': conn.accessToken,
+                'X-Emby-Authorization': 'MediaBrowser Client="Plezy", Device="Android", DeviceId="${conn.deviceId}", Version="2.11.0"',
+              };
+            } else {
+              taskHeaders = {
+                'X-Emby-Token': conn.accessToken,
+                'X-Jellyfin-Authorization': 'MediaBrowser Client="Plezy", Device="Android", DeviceId="${conn.deviceId}", Version="2.11.0"',
+              };
+            }
+          }
 
           task = DownloadTask(
             url: resolution.videoUrl!,
@@ -1836,6 +1866,7 @@ class DownloadManagerService {
             directory: path.dirname(downloadFilePath),
             baseDirectory: BaseDirectory.root,
             group: _downloadGroup,
+            headers: taskHeaders,
             updates: Updates.statusAndProgress,
             requiresWiFi: requiresWiFi,
             retries: _nativeRetries,

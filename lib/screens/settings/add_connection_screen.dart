@@ -46,6 +46,15 @@ class AddConnectionScreen extends StatelessWidget {
             : t.addServer.connectToJellyfinCardSubtitle,
         builder: (_) => AddJellyfinScreen(targetProfile: targetProfile),
       ),
+      _BackendOption(
+        backend: MediaBackend.jellyfin,
+        isEmby: true,
+        title: 'Emby\'ye Bağlan',
+        subtitle: scoped
+            ? 'Bir Emby sunucusuna giriş yapın. ${targetProfile!.displayName} profiline bağlanır.'
+            : 'Bir Emby sunucusuna giriş yapın.',
+        builder: (_) => AddJellyfinScreen(targetProfile: targetProfile, isEmby: true),
+      ),
       if (scoped)
         _BackendOption(
           backend: null,
@@ -71,7 +80,7 @@ class AddConnectionScreen extends StatelessWidget {
                 _BackendCard(
                   borderRadius: groupItemRadii(context, i, options.length),
                   leading: options[i].backend != null
-                      ? BackendBadge(backend: options[i].backend!, size: 28)
+                      ? BackendBadge(backend: options[i].backend!, isEmby: options[i].isEmby, size: 28)
                       : const AppIcon(Symbols.share_rounded, fill: 1, size: 28),
                   title: options[i].title,
                   subtitle: options[i].subtitle,
@@ -94,11 +103,18 @@ class AddConnectionScreen extends StatelessWidget {
 class _BackendOption {
   /// Null for the borrow option (renders a share icon instead of a badge).
   final MediaBackend? backend;
+  final bool isEmby;
   final String title;
   final String subtitle;
   final WidgetBuilder builder;
 
-  const _BackendOption({required this.backend, required this.title, required this.subtitle, required this.builder});
+  const _BackendOption({
+    required this.backend,
+    this.isEmby = false,
+    required this.title,
+    required this.subtitle,
+    required this.builder,
+  });
 }
 
 class _BackendCard extends StatelessWidget {
