@@ -49,10 +49,10 @@ class AddConnectionScreen extends StatelessWidget {
       _BackendOption(
         backend: MediaBackend.jellyfin,
         isEmby: true,
-        title: 'Emby\'ye Bağlan',
+        title: 'Connect to Emby',
         subtitle: scoped
-            ? 'Bir Emby sunucusuna giriş yapın. ${targetProfile!.displayName} profiline bağlanır.'
-            : 'Bir Emby sunucusuna giriş yapın.',
+            ? 'Sign in to an Emby server. Will be linked to ${targetProfile!.displayName}.'
+            : 'Sign in to an Emby server.',
         builder: (_) => AddJellyfinScreen(targetProfile: targetProfile, isEmby: true),
       ),
       if (scoped)

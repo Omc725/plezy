@@ -7,7 +7,7 @@ class EmbyClient implements MediaServerInterface {
   String? _serverUrl;
   String? _userId;
 
-  // Emby'nin zorunlu tuttuğu kimlik doğrulama başlık parametreleri
+  // Required authentication header parameters for Emby.
   final String _deviceId;
   final String _clientName;
   final String _version;
