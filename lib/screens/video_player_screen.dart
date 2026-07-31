@@ -1178,6 +1178,7 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> with WidgetsBindin
         await currentPlayer.setProperty('sub-border-style', 'background-box');
       }
       await currentPlayer.setProperty('sub-ass-override', settingsService.read(SettingsService.subAssOverride).name);
+      await currentPlayer.setProperty('sub-fix-timing', 'yes');
       await currentPlayer.setProperty('sub-pos', settingsService.read(SettingsService.subtitlePosition).toString());
 
       if (Platform.isIOS) {

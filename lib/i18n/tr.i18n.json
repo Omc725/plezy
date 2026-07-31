@@ -381,6 +381,11 @@
       "screenshot": "Ekran Görüntüsü Al"
     }
   },
+  "playerControls": {
+    "skipIntro": "Jeneriği Atla",
+    "skipCredits": "Kapanışı Atla",
+    "nextEpisode": "Sonraki Bölüm"
+  },
   "fileInfo": {
     "title": "Dosya Bilgisi",
     "overview": "Genel Bakış",

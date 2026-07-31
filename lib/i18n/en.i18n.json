@@ -381,6 +381,11 @@
       "screenshot": "Take Screenshot"
     }
   },
+  "playerControls": {
+    "skipIntro": "Skip Intro",
+    "skipCredits": "Skip Credits",
+    "nextEpisode": "Next Episode"
+  },
   "fileInfo": {
     "title": "File Info",
     "overview": "Overview",

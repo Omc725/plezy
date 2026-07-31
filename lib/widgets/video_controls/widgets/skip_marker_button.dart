@@ -7,6 +7,8 @@ import '../../../media/media_source_info.dart';
 import '../../../theme/mono_tokens.dart';
 import '../../app_icon.dart';
 
+import '../../../i18n/strings.g.dart';
+
 class SkipMarkerButton extends StatelessWidget {
   final MediaMarker marker;
   final Duration playerDuration;
@@ -41,11 +43,11 @@ class SkipMarkerButton extends StatelessWidget {
     final showNextEpisode = creditsAtEnd && hasNextEpisode;
     String baseButtonText;
     if (showNextEpisode) {
-      baseButtonText = 'Next Episode';
+      baseButtonText = t.playerControls.nextEpisode;
     } else if (isCredits) {
-      baseButtonText = 'Skip Credits';
+      baseButtonText = t.playerControls.skipCredits;
     } else {
-      baseButtonText = 'Skip Intro';
+      baseButtonText = t.playerControls.skipIntro;
     }
 
     final remainingSeconds = isAutoSkipActive && shouldShowAutoSkip

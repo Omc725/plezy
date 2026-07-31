@@ -48,6 +48,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$settings$en settings = Translations$settings$en.internal(_root);
 	late final Translations$search$en search = Translations$search$en.internal(_root);
 	late final Translations$hotkeys$en hotkeys = Translations$hotkeys$en.internal(_root);
+	late final Translations$playerControls$en playerControls = Translations$playerControls$en.internal(_root);
 	late final Translations$fileInfo$en fileInfo = Translations$fileInfo$en.internal(_root);
 	late final Translations$mediaMenu$en mediaMenu = Translations$mediaMenu$en.internal(_root);
 	late final Translations$rateSheet$en rateSheet = Translations$rateSheet$en.internal(_root);
@@ -1180,6 +1181,24 @@ class Translations$hotkeys$en {
 	String get recordingShortcut => 'Press the shortcut now';
 
 	late final Translations$hotkeys$actions$en actions = Translations$hotkeys$actions$en.internal(_root);
+}
+
+// Path: playerControls
+class Translations$playerControls$en {
+	Translations$playerControls$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Skip Intro'
+	String get skipIntro => 'Skip Intro';
+
+	/// en: 'Skip Credits'
+	String get skipCredits => 'Skip Credits';
+
+	/// en: 'Next Episode'
+	String get nextEpisode => 'Next Episode';
 }
 
 // Path: fileInfo
@@ -6289,6 +6308,9 @@ extension on Translations {
 			'hotkeys.actions.shaderToggle' => 'Toggle Shaders',
 			'hotkeys.actions.skipMarker' => 'Skip Intro/Credits',
 			'hotkeys.actions.screenshot' => 'Take Screenshot',
+			'playerControls.skipIntro' => 'Skip Intro',
+			'playerControls.skipCredits' => 'Skip Credits',
+			'playerControls.nextEpisode' => 'Next Episode',
 			'fileInfo.title' => 'File Info',
 			'fileInfo.overview' => 'Overview',
 			'fileInfo.video' => 'Video',
@@ -6434,11 +6456,11 @@ extension on Translations {
 			'accessibility.mediaCardUnwatched' => 'unwatched',
 			'accessibility.tapToPlay' => 'Tap to play',
 			'accessibility.decrease' => 'Decrease',
+			_ => null,
+		} ?? switch (path) {
 			'accessibility.increase' => 'Increase',
 			'accessibility.decreaseValue' => ({required Object label}) => 'Decrease ${label}',
 			'accessibility.increaseValue' => ({required Object label}) => 'Increase ${label}',
-			_ => null,
-		} ?? switch (path) {
 			'accessibility.hue' => 'Hue',
 			'accessibility.saturation' => 'Saturation',
 			'accessibility.brightness' => 'Brightness',
@@ -6948,11 +6970,11 @@ extension on Translations {
 			'explore.detail.originalTitle' => 'Original title',
 			'explore.detail.alsoKnownAs' => 'Also known as',
 			'explore.detail.studios' => 'Studios',
+			_ => null,
+		} ?? switch (path) {
 			'explore.detail.country' => 'Country',
 			'explore.detail.language' => 'Language',
 			'explore.detail.released' => 'Released',
-			_ => null,
-		} ?? switch (path) {
 			'explore.detail.physicalRelease' => 'On disc',
 			'explore.detail.ended' => 'Ended',
 			'explore.detail.addedOn' => ({required Object date}) => 'Added ${date}',
@@ -7462,11 +7484,11 @@ extension on Translations {
 			'metadataEdit.metadataUpdated' => 'Metadata updated',
 			'metadataEdit.metadataUpdateFailed' => 'Failed to update metadata',
 			'metadataEdit.artworkUpdated' => 'Artwork updated',
+			_ => null,
+		} ?? switch (path) {
 			'metadataEdit.artworkUpdateFailed' => 'Failed to update artwork',
 			'metadataEdit.noArtworkAvailable' => 'No artwork available',
 			'metadataEdit.artworkOption' => ({required Object index}) => 'Artwork option ${index}',
-			_ => null,
-		} ?? switch (path) {
 			'metadataEdit.selectedArtworkOption' => ({required Object index}) => 'Artwork option ${index}, selected',
 			'metadataEdit.notSet' => 'Not set',
 			'metadataEdit.libraryDefault' => 'Library default',
