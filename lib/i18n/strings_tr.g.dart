@@ -533,8 +533,8 @@ class _Translations$fileInfo$tr extends Translations$fileInfo$en {
 	@override String get file => 'Dosya';
 	@override String get attachments => 'Eklentiler';
 	@override String get delivery => 'Teslimat';
-	@override String get versionCounter => 'Sürüm Sayacı';
-	@override String get fileCounter => 'Dosya Sayacı';
+	@override String versionCounter({required Object index, required Object count}) => 'Version ${index} of ${count}';
+	@override String fileCounter({required Object index, required Object count}) => 'File ${index} of ${count}';
 	@override String get noStreams => 'Akış bulunamadı';
 	@override String get copyPath => 'Yolu Kopyala';
 	@override String get pathCopied => 'Yol kopyalandı';
@@ -1251,8 +1251,8 @@ class _Translations$explore$tr extends Translations$explore$en {
 	@override late final _Translations$explore$sourceMaterial$tr sourceMaterial = _Translations$explore$sourceMaterial$tr._(_root);
 	@override late final _Translations$explore$creditRole$tr creditRole = _Translations$explore$creditRole$tr._(_root);
 	@override late final _Translations$explore$ratingSource$tr ratingSource = _Translations$explore$ratingSource$tr._(_root);
-	@override String get broadcast => 'Yayın';
-	@override String broadcastWithZone({required Object zone}) => 'Yayın (${zone})';
+	@override String broadcast({required Object day, required Object time}) => 'Airs ${day} at ${time}';
+	@override String broadcastWithZone({required Object day, required Object time, required Object timezone}) => 'Airs ${day} at ${time} ${timezone}';
 	@override late final _Translations$explore$detail$tr detail = _Translations$explore$detail$tr._(_root);
 	@override String totalResults({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('tr'))(n,
 		one: '${n} sonuç',
@@ -2133,13 +2133,13 @@ class _Translations$explore$badge$tr extends Translations$explore$badge$en {
 	final TranslationsTr _root; // ignore: unused_field
 
 	// Translations
-	@override String rankPopular({required Object rank}) => '#${rank} Popüler';
-	@override String rankAiring({required Object rank}) => '#${rank} Yayınlanan';
-	@override String rankRated({required Object rank}) => '#${rank} En Yüksek Puanlı';
-	@override String rankFavorited({required Object rank}) => '#${rank} En Çok Favorilenen';
-	@override String rankTrending({required Object rank}) => '#${rank} Trend';
-	@override String rankSeasonal({required Object rank}) => '#${rank} Sezonluk';
-	@override String get watchingNow => 'Şu An İzleyenler';
+	@override String rankPopular({required Object n}) => '#${n} Popüler';
+	@override String rankAiring({required Object n}) => '#${n} Yayınlanan';
+	@override String rankRated({required Object n}) => '#${n} En Yüksek Puanlı';
+	@override String rankFavorited({required Object n}) => '#${n} En Çok Favorilenen';
+	@override String rankTrending({required Object n}) => '#${n} Trend';
+	@override String rankSeasonal({required Object n, required Object season}) => '#${n} Sezonluk (${season})';
+	@override String watchingNow({required Object n}) => '${n} watching';
 	@override String get available => 'Mevcut';
 	@override String get partiallyAvailable => 'Kısmen Mevcut';
 	@override String get availableIn4k => '4K Mevcut';
@@ -2149,11 +2149,11 @@ class _Translations$explore$badge$tr extends Translations$explore$badge$en {
 	@override String get declined => 'Reddedildi';
 	@override String get requestFailed => 'İstek Başarısız';
 	@override String get requested4k => '4K İstendi';
-	@override String seasonsAvailable({required Object count}) => '${count} Sezon Mevcut';
-	@override String nextEpisodeIn({required Object time}) => 'Sonraki bölüm: ${time}';
-	@override String nextAiringIn({required Object time}) => 'Sonraki yayın: ${time}';
-	@override String episodesShort({required Object count}) => '${count} Bölüm';
-	@override String minutesPerEpisode({required Object minutes}) => '${minutes} dk / bölüm';
+	@override String seasonsAvailable({required Object available, required Object total}) => '${available}/${total} Sezon Mevcut';
+	@override String nextEpisodeIn({required Object episode, required Object duration}) => 'Ep ${episode} Sonraki bölüm: ${duration}';
+	@override String nextAiringIn({required Object duration}) => 'Sonraki yayın: ${duration}';
+	@override String episodesShort({required Object n}) => '${n} Bölüm';
+	@override String minutesPerEpisode({required Object n}) => '${n} dk / bölüm';
 	@override String get adult => 'Yetişkin (+18)';
 }
 
@@ -2164,24 +2164,24 @@ class _Translations$explore$stats$tr extends Translations$explore$stats$en {
 	final TranslationsTr _root; // ignore: unused_field
 
 	// Translations
-	@override String get listed => 'Listelendi';
-	@override String get viewersDay => 'Günlük İzleyici';
-	@override String get viewersWeek => 'Haftalık İzleyici';
-	@override String get viewersMonth => 'Aylık İzleyici';
-	@override String get viewersYear => 'Yıllık İzleyici';
-	@override String get viewersAllTime => 'Tüm Zamanlar İzleyici';
-	@override String get planning => 'Planlanıyor';
-	@override String get favorited => 'Favorilendi';
-	@override String get dropRate => 'Bırakma Oranı';
+	@override String listed({required Object n}) => '${n} listed';
+	@override String viewersDay({required Object n}) => '${n} watched today';
+	@override String viewersWeek({required Object n}) => '${n} watched this week';
+	@override String viewersMonth({required Object n}) => '${n} watched this month';
+	@override String viewersYear({required Object n}) => '${n} watched this year';
+	@override String viewersAllTime({required Object n}) => '${n} viewers';
+	@override String planning({required Object n}) => '${n} planning to watch';
+	@override String favorited({required Object n}) => '${n} favorites';
+	@override String dropRate({required Object percent}) => '${percent} dropped it';
 	@override String comments({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('tr'))(n,
 		one: '${n} yorum',
 		other: '${n} yorum',
 	);
-	@override String get votes => 'Oy';
-	@override String get watching => 'İzliyor';
-	@override String get completed => 'Tamamlandı';
-	@override String get onHold => 'Beklemede';
-	@override String get dropped => 'Bırakıldı';
+	@override String votes({required Object n}) => '${n} votes';
+	@override String watching({required Object n}) => '${n} watching it';
+	@override String completed({required Object n}) => '${n} completed';
+	@override String onHold({required Object n}) => '${n} on hold';
+	@override String dropped({required Object n}) => '${n} dropped';
 }
 
 // Path: explore.season
@@ -2282,7 +2282,7 @@ class _Translations$explore$detail$tr extends Translations$explore$detail$en {
 	@override String get released => 'Yayınlanma Tarihi';
 	@override String get physicalRelease => 'Fiziksel Yayın Tarihi';
 	@override String get ended => 'Bitiş Tarihi';
-	@override String get addedOn => 'Eklenme Tarihi';
+	@override String addedOn({required Object date}) => 'Added ${date}';
 	@override String get yourRating => 'Puanınız';
 	@override String get budget => 'Bütçe';
 	@override String get revenue => 'Hasılat';
@@ -2290,9 +2290,9 @@ class _Translations$explore$detail$tr extends Translations$explore$detail$en {
 	@override String get tags => 'Etiketler';
 	@override String get revealSpoilerTags => 'Sürpriz Bozan Etiketleri Göster';
 	@override String get links => 'Bağlantılar';
-	@override String watchOn({required Object service}) => '${service} üzerinde izle';
+	@override String get watchOn => 'Watch on';
 	@override String get watchTrailer => 'Fragmanı İzle';
-	@override String openOn({required Object service}) => '${service} üzerinde aç';
+	@override String openOn({required Object site}) => '${site} üzerinde aç';
 	@override String get crew => 'Ekip';
 	@override String get ratings => 'Derecelendirmeler';
 	@override String get schedule => 'Yayın Takvimi';
@@ -2300,9 +2300,9 @@ class _Translations$explore$detail$tr extends Translations$explore$detail$en {
 		one: '${n} kullanıcı tarafından önerildi',
 		other: '${n} kullanıcı tarafından önerildi',
 	);
-	@override String get recommendedBy => 'Öneren';
-	@override String get favoritedBy => 'Favorilere Ekleyen';
-	@override String get unairedEpisodes => 'Yayınlanmamış Bölümler';
+	@override String recommendedBy({required Object who}) => 'Recommended by ${who}';
+	@override String favoritedBy({required Object who}) => 'Favorited by ${who}';
+	@override String unairedEpisodes({required Object n}) => '${n} not aired yet';
 	@override String recommendedByPercent({required Object percent}) => '%${percent} Önerilme';
 	@override String get relatedTitles => 'İlgili Başlıklar';
 	@override String get background => 'Arka Plan';
@@ -2907,8 +2907,8 @@ extension on TranslationsTr {
 			'fileInfo.file' => 'Dosya',
 			'fileInfo.attachments' => 'Eklentiler',
 			'fileInfo.delivery' => 'Teslimat',
-			'fileInfo.versionCounter' => 'Sürüm Sayacı',
-			'fileInfo.fileCounter' => 'Dosya Sayacı',
+			'fileInfo.versionCounter' => ({required Object index, required Object count}) => 'Version ${index} of ${count}',
+			'fileInfo.fileCounter' => ({required Object index, required Object count}) => 'File ${index} of ${count}',
 			'fileInfo.noStreams' => 'Akış bulunamadı',
 			'fileInfo.copyPath' => 'Yolu Kopyala',
 			'fileInfo.pathCopied' => 'Yol kopyalandı',
@@ -3475,13 +3475,13 @@ extension on TranslationsTr {
 			'explore.searchEmpty' => ({required Object query}) => '"${query}" için sonuç bulunamadı',
 			'explore.searchPrompt' => ({required Object source}) => '${source} üzerinde film ve dizileri arayın.',
 			'explore.searchFailed' => 'Arama başarısız. Bağlantınızı kontrol edip tekrar deneyin.',
-			'explore.badge.rankPopular' => ({required Object rank}) => '#${rank} Popüler',
-			'explore.badge.rankAiring' => ({required Object rank}) => '#${rank} Yayınlanan',
-			'explore.badge.rankRated' => ({required Object rank}) => '#${rank} En Yüksek Puanlı',
-			'explore.badge.rankFavorited' => ({required Object rank}) => '#${rank} En Çok Favorilenen',
-			'explore.badge.rankTrending' => ({required Object rank}) => '#${rank} Trend',
-			'explore.badge.rankSeasonal' => ({required Object rank}) => '#${rank} Sezonluk',
-			'explore.badge.watchingNow' => 'Şu An İzleyenler',
+			'explore.badge.rankPopular' => ({required Object n}) => '#${n} Popüler',
+			'explore.badge.rankAiring' => ({required Object n}) => '#${n} Yayınlanan',
+			'explore.badge.rankRated' => ({required Object n}) => '#${n} En Yüksek Puanlı',
+			'explore.badge.rankFavorited' => ({required Object n}) => '#${n} En Çok Favorilenen',
+			'explore.badge.rankTrending' => ({required Object n}) => '#${n} Trend',
+			'explore.badge.rankSeasonal' => ({required Object n, required Object season}) => '#${n} Sezonluk (${season})',
+			'explore.badge.watchingNow' => ({required Object n}) => '${n} watching',
 			'explore.badge.available' => 'Mevcut',
 			'explore.badge.partiallyAvailable' => 'Kısmen Mevcut',
 			'explore.badge.availableIn4k' => '4K Mevcut',
@@ -3491,27 +3491,27 @@ extension on TranslationsTr {
 			'explore.badge.declined' => 'Reddedildi',
 			'explore.badge.requestFailed' => 'İstek Başarısız',
 			'explore.badge.requested4k' => '4K İstendi',
-			'explore.badge.seasonsAvailable' => ({required Object count}) => '${count} Sezon Mevcut',
-			'explore.badge.nextEpisodeIn' => ({required Object time}) => 'Sonraki bölüm: ${time}',
-			'explore.badge.nextAiringIn' => ({required Object time}) => 'Sonraki yayın: ${time}',
-			'explore.badge.episodesShort' => ({required Object count}) => '${count} Bölüm',
-			'explore.badge.minutesPerEpisode' => ({required Object minutes}) => '${minutes} dk / bölüm',
+			'explore.badge.seasonsAvailable' => ({required Object available, required Object total}) => '${available}/${total} Sezon Mevcut',
+			'explore.badge.nextEpisodeIn' => ({required Object episode, required Object duration}) => 'Ep ${episode} Sonraki bölüm: ${duration}',
+			'explore.badge.nextAiringIn' => ({required Object duration}) => 'Sonraki yayın: ${duration}',
+			'explore.badge.episodesShort' => ({required Object n}) => '${n} Bölüm',
+			'explore.badge.minutesPerEpisode' => ({required Object n}) => '${n} dk / bölüm',
 			'explore.badge.adult' => 'Yetişkin (+18)',
-			'explore.stats.listed' => 'Listelendi',
-			'explore.stats.viewersDay' => 'Günlük İzleyici',
-			'explore.stats.viewersWeek' => 'Haftalık İzleyici',
-			'explore.stats.viewersMonth' => 'Aylık İzleyici',
-			'explore.stats.viewersYear' => 'Yıllık İzleyici',
-			'explore.stats.viewersAllTime' => 'Tüm Zamanlar İzleyici',
-			'explore.stats.planning' => 'Planlanıyor',
-			'explore.stats.favorited' => 'Favorilendi',
-			'explore.stats.dropRate' => 'Bırakma Oranı',
+			'explore.stats.listed' => ({required Object n}) => '${n} listed',
+			'explore.stats.viewersDay' => ({required Object n}) => '${n} watched today',
+			'explore.stats.viewersWeek' => ({required Object n}) => '${n} watched this week',
+			'explore.stats.viewersMonth' => ({required Object n}) => '${n} watched this month',
+			'explore.stats.viewersYear' => ({required Object n}) => '${n} watched this year',
+			'explore.stats.viewersAllTime' => ({required Object n}) => '${n} viewers',
+			'explore.stats.planning' => ({required Object n}) => '${n} planning to watch',
+			'explore.stats.favorited' => ({required Object n}) => '${n} favorites',
+			'explore.stats.dropRate' => ({required Object percent}) => '${percent} dropped it',
 			'explore.stats.comments' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('tr'))(n, one: '${n} yorum', other: '${n} yorum', ), 
-			'explore.stats.votes' => 'Oy',
-			'explore.stats.watching' => 'İzliyor',
-			'explore.stats.completed' => 'Tamamlandı',
-			'explore.stats.onHold' => 'Beklemede',
-			'explore.stats.dropped' => 'Bırakıldı',
+			'explore.stats.votes' => ({required Object n}) => '${n} votes',
+			'explore.stats.watching' => ({required Object n}) => '${n} watching it',
+			'explore.stats.completed' => ({required Object n}) => '${n} completed',
+			'explore.stats.onHold' => ({required Object n}) => '${n} on hold',
+			'explore.stats.dropped' => ({required Object n}) => '${n} dropped',
 			'explore.season.winter' => 'Kış',
 			'explore.season.spring' => 'İlkbahar',
 			'explore.season.summer' => 'Yaz',
@@ -3550,8 +3550,8 @@ extension on TranslationsTr {
 			'explore.ratingSource.trakt' => 'Trakt',
 			'explore.ratingSource.rottenTomatoesCritic' => 'Rotten Tomatoes (Eleştirmen)',
 			'explore.ratingSource.rottenTomatoesAudience' => 'Rotten Tomatoes (Seyirci)',
-			'explore.broadcast' => 'Yayın',
-			'explore.broadcastWithZone' => ({required Object zone}) => 'Yayın (${zone})',
+			'explore.broadcast' => ({required Object day, required Object time}) => 'Airs ${day} at ${time}',
+			'explore.broadcastWithZone' => ({required Object day, required Object time, required Object timezone}) => 'Airs ${day} at ${time} ${timezone}',
 			'explore.detail.originalTitle' => 'Orijinal Başlık',
 			'explore.detail.alsoKnownAs' => 'Diğer Bilinen Adları',
 			'explore.detail.studios' => 'Stüdyolar',
@@ -3562,7 +3562,7 @@ extension on TranslationsTr {
 			'explore.detail.released' => 'Yayınlanma Tarihi',
 			'explore.detail.physicalRelease' => 'Fiziksel Yayın Tarihi',
 			'explore.detail.ended' => 'Bitiş Tarihi',
-			'explore.detail.addedOn' => 'Eklenme Tarihi',
+			'explore.detail.addedOn' => ({required Object date}) => 'Added ${date}',
 			'explore.detail.yourRating' => 'Puanınız',
 			'explore.detail.budget' => 'Bütçe',
 			'explore.detail.revenue' => 'Hasılat',
@@ -3570,16 +3570,16 @@ extension on TranslationsTr {
 			'explore.detail.tags' => 'Etiketler',
 			'explore.detail.revealSpoilerTags' => 'Sürpriz Bozan Etiketleri Göster',
 			'explore.detail.links' => 'Bağlantılar',
-			'explore.detail.watchOn' => ({required Object service}) => '${service} üzerinde izle',
+			'explore.detail.watchOn' => 'Watch on',
 			'explore.detail.watchTrailer' => 'Fragmanı İzle',
-			'explore.detail.openOn' => ({required Object service}) => '${service} üzerinde aç',
+			'explore.detail.openOn' => ({required Object site}) => '${site} üzerinde aç',
 			'explore.detail.crew' => 'Ekip',
 			'explore.detail.ratings' => 'Derecelendirmeler',
 			'explore.detail.schedule' => 'Yayın Takvimi',
 			'explore.detail.recommendedByUsers' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('tr'))(n, one: '${n} kullanıcı tarafından önerildi', other: '${n} kullanıcı tarafından önerildi', ), 
-			'explore.detail.recommendedBy' => 'Öneren',
-			'explore.detail.favoritedBy' => 'Favorilere Ekleyen',
-			'explore.detail.unairedEpisodes' => 'Yayınlanmamış Bölümler',
+			'explore.detail.recommendedBy' => ({required Object who}) => 'Recommended by ${who}',
+			'explore.detail.favoritedBy' => ({required Object who}) => 'Favorited by ${who}',
+			'explore.detail.unairedEpisodes' => ({required Object n}) => '${n} not aired yet',
 			'explore.detail.recommendedByPercent' => ({required Object percent}) => '%${percent} Önerilme',
 			'explore.detail.relatedTitles' => 'İlgili Başlıklar',
 			'explore.detail.background' => 'Arka Plan',
