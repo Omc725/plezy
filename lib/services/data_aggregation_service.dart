@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 import '../media/ids.dart';
 
 import '../media/media_hub.dart';
 import '../media/media_item.dart';
 import '../media/media_kind.dart';
 import '../media/media_library.dart';
+import '../media/library_query.dart';
 import '../media/media_server_client.dart';
+
 import '../exceptions/media_server_exceptions.dart';
 import '../utils/app_logger.dart';
 import '../utils/external_ids.dart';
@@ -14,6 +17,9 @@ import '../utils/search_relevance.dart';
 import '../utils/media_server_http_client.dart';
 import 'local_playback_history.dart';
 import 'multi_server_manager.dart';
+import 'storage_service.dart';
+import 'tmdb_home_service.dart';
+
 
 typedef OnDeckAggregationResult = ({
   List<MediaItem> items,
@@ -437,10 +443,6 @@ class DataAggregationService {
         final hubs = shouldUseGlobalHubs
             ? [
                 ...await client.fetchGlobalHubs(limit: hubItemLimit, includePlaybackHubs: includePlaybackHubs),
-                // Plex's promoted/global hub endpoint never includes music
-                // libraries — append their per-library hubs so music rows
-                // reach home. No-op (zero extra calls) without a visible
-                // music library.
                 ...await _fetchLibraryHubsForClient(
                   client,
                   limit: hubItemLimit,
@@ -457,14 +459,245 @@ class DataAggregationService {
                 includePlaybackHubs: includePlaybackHubs,
                 libraries: useGlobalHubs ? serverLibraries : null,
               );
+
         return _postProcessHubs(hubs, serverId: ServerId(serverId), hiddenLibraryKeys: hiddenLibraryKeys);
       },
     );
 
-    final all = fetched.items;
+    await prepareCategoryQueue(hiddenLibraryKeys: hiddenLibraryKeys, serverIds: serverIds);
+    final initialCategoryHubs = await fetchNextCategoryBatch(count: 2, hiddenLibraryKeys: hiddenLibraryKeys);
+
+    final all = [
+      ...fetched.items,
+      ...initialCategoryHubs,
+    ];
+
+
+
     final hubs = limit != null && limit < all.length ? all.sublist(0, limit) : all;
     return (hubs: hubs, succeededServerIds: fetched.succeededServerIds, cancelledServerIds: fetched.cancelledServerIds);
   }
+
+
+  /// Sanitizes items by checking poster availability.
+  /// If an item lacks a poster, fetches poster from TMDB.
+  /// If TMDB also has no poster, the item is excluded from home display.
+  Future<List<MediaItem>> _sanitizeItemsWithPosters(List<MediaItem> items) async {
+    final result = <MediaItem>[];
+    final tmdbService = TmdbHomeService();
+
+    for (final item in items) {
+      final hasThumb = item.thumbPath != null && item.thumbPath!.isNotEmpty;
+      final hasArt = item.artPath != null && item.artPath!.isNotEmpty;
+
+      if (hasThumb || hasArt) {
+        result.add(item);
+      } else {
+        final title = item.title;
+        if (title != null && title.isNotEmpty) {
+          final posterUrl = await tmdbService.fetchPosterForTitle(
+            title,
+            year: item.year,
+            isMovie: item.kind == MediaKind.movie,
+          );
+
+          if (posterUrl != null && posterUrl.isNotEmpty) {
+            result.add(item.copyWith(thumbPath: posterUrl));
+            continue;
+          }
+        }
+        appLogger.d('DataAggregationService: Excluded item without poster: ${item.title}');
+      }
+    }
+    return result;
+  }
+
+
+  /// Fetches or retrieves the daily Top 10 hub (cached 24h/daily in StorageService).
+  /// Contains only items present in the user's local library.
+  Future<MediaHub?> fetchDailyTop10Hub({Set<String>? hiddenLibraryKeys, Set<String>? serverIds}) async {
+    try {
+      final tmdbService = TmdbHomeService();
+      final storage = await StorageService.getInstance();
+      final todayStr = DateTime.now().toIso8601String().substring(0, 10);
+      final cachedDate = storage.prefs.getString('tmdb_top10_date');
+
+      List<MediaItem> top10Items = [];
+
+      if (cachedDate == todayStr) {
+        final cachedJson = storage.prefs.getString('tmdb_top10_items_json');
+        if (cachedJson != null && cachedJson.isNotEmpty) {
+          try {
+            final List<dynamic> rawList = jsonDecode(cachedJson) as List<dynamic>;
+            top10Items = rawList.map((j) => MediaItem.fromJson(j as Map<String, dynamic>)).toList();
+            if (top10Items.length < 5) {
+              top10Items.clear();
+            }
+          } catch (_) {}
+        }
+      }
+
+      if (top10Items.isEmpty) {
+        final clients = _clientsFor(serverIds);
+        final allLocalItems = <MediaItem>[];
+
+        for (final entry in clients.entries) {
+          try {
+            final libs = await entry.value.fetchLibraries();
+            for (final lib in libs) {
+              if (hiddenLibraryKeys != null && hiddenLibraryKeys.contains(lib.globalKey)) continue;
+              if (lib.kind == MediaKind.movie || lib.kind == MediaKind.show) {
+                final page = await entry.value.fetchLibraryContent(lib.id, LibraryQuery(limit: 500));
+                allLocalItems.addAll(page.items);
+              }
+            }
+          } catch (_) {}
+        }
+
+
+        top10Items = await tmdbService.matchLocalItemsWithTmdbTop10(allLocalItems);
+        top10Items = await _sanitizeItemsWithPosters(top10Items);
+
+        if (top10Items.isNotEmpty) {
+          final jsonStr = jsonEncode(top10Items.map((i) => i.toJson()).toList());
+          await storage.prefs.setString('tmdb_top10_date', todayStr);
+          await storage.prefs.setString('tmdb_top10_items_json', jsonStr);
+        }
+      }
+
+
+      if (top10Items.isNotEmpty) {
+        return MediaHub(
+          id: 'top10_daily',
+          title: '🔥 Günün Top 10 İçeriği',
+          type: 'mixed',
+          items: top10Items,
+          size: top10Items.length,
+        );
+      }
+    } catch (e) {
+      appLogger.w('Failed to build daily Top 10 hub: $e');
+    }
+    return null;
+  }
+
+  /// List of pending alternating category genre queries for lazy loading on scroll.
+  final List<({MediaLibrary library, String genreName, bool isMovie, String serverId})> _categoryQueue = [];
+  int _categoryQueueIndex = 0;
+  bool _categoryQueuePrepared = false;
+
+  Future<void> prepareCategoryQueue({Set<String>? hiddenLibraryKeys, Set<String>? serverIds}) async {
+    _categoryQueue.clear();
+    _categoryQueueIndex = 0;
+    _categoryQueuePrepared = true;
+
+    final clients = _clientsFor(serverIds);
+    if (clients.isEmpty) return;
+
+    for (final client in clients.values) {
+      try {
+        final libraries = await client.fetchLibraries();
+        final visible = libraries.where((lib) {
+          if (hiddenLibraryKeys != null && hiddenLibraryKeys.contains(lib.globalKey)) {
+            return false;
+          }
+          return lib.kind == MediaKind.movie || lib.kind == MediaKind.show;
+        }).toList();
+
+        final movieLibs = visible.where((l) => l.kind == MediaKind.movie).toList();
+        final showLibs = visible.where((l) => l.kind == MediaKind.show).toList();
+
+        final moviePairs = <({MediaLibrary library, String genreName, bool isMovie, String serverId})>[];
+        final showPairs = <({MediaLibrary library, String genreName, bool isMovie, String serverId})>[];
+
+        for (final lib in movieLibs) {
+          try {
+            final filterResult = await client.fetchLibraryFiltersWithValues(lib.id, libraryKind: lib.kind);
+            final genreValues = filterResult.cachedValues['genre'] ?? [];
+            for (final g in genreValues) {
+              moviePairs.add((library: lib, genreName: g.title, isMovie: true, serverId: client.serverId));
+            }
+          } catch (_) {}
+        }
+
+        for (final lib in showLibs) {
+          try {
+            final filterResult = await client.fetchLibraryFiltersWithValues(lib.id, libraryKind: lib.kind);
+            final genreValues = filterResult.cachedValues['genre'] ?? [];
+            for (final g in genreValues) {
+              showPairs.add((library: lib, genreName: g.title, isMovie: false, serverId: client.serverId));
+            }
+          } catch (_) {}
+        }
+
+        // Interleave strictly: 1 Movie category, 1 Series category
+        final maxLen = moviePairs.length > showPairs.length ? moviePairs.length : showPairs.length;
+        for (var i = 0; i < maxLen; i++) {
+          if (i < moviePairs.length) _categoryQueue.add(moviePairs[i]);
+          if (i < showPairs.length) _categoryQueue.add(showPairs[i]);
+        }
+      } catch (_) {}
+    }
+  }
+
+  Future<List<MediaHub>> fetchNextCategoryBatch({int count = 2, Set<String>? hiddenLibraryKeys}) async {
+    if (!_categoryQueuePrepared) {
+      await prepareCategoryQueue(hiddenLibraryKeys: hiddenLibraryKeys);
+    }
+
+    final hubs = <MediaHub>[];
+    var loadedCount = 0;
+
+    while (_categoryQueueIndex < _categoryQueue.length && loadedCount < count) {
+      final item = _categoryQueue[_categoryQueueIndex++];
+      final isMovie = item.isMovie;
+      final genreName = item.genreName;
+      final lib = item.library;
+      final serverId = item.serverId;
+      final client = _serverManager.onlineClients[serverId];
+      if (client == null) continue;
+
+      final hubTitle = isMovie ? '$genreName Filmleri' : '$genreName Dizileri';
+
+      try {
+        final page = await client.fetchLibraryContent(
+          lib.id,
+          LibraryQuery(
+            kind: isMovie ? MediaKind.movie : MediaKind.show,
+            genres: [genreName],
+            limit: 12,
+          ),
+        );
+
+        if (page.items.isNotEmpty) {
+          final tmdbOrderedItems = await TmdbHomeService().orderLocalItemsByTmdbGenre(
+            page.items,
+            genreName,
+            isMovie: isMovie,
+          );
+          final sanitizedItems = await _sanitizeItemsWithPosters(tmdbOrderedItems);
+
+          if (sanitizedItems.isNotEmpty) {
+            hubs.add(MediaHub(
+              id: 'category_genre_${lib.id}_${genreName}_${isMovie ? "movie" : "show"}',
+              title: hubTitle,
+              type: isMovie ? 'movie' : 'show',
+              items: sanitizedItems,
+              size: sanitizedItems.length,
+              libraryId: lib.id,
+              serverId: client.serverId,
+            ));
+            loadedCount++;
+          }
+        }
+      } catch (_) {}
+    }
+    return hubs;
+  }
+
+
+
+
 
   /// Per-library hub fetch for a single client. Filters to visible libraries
   /// of [kinds] (movie/show/clip/artist by default — clip covers Jellyfin

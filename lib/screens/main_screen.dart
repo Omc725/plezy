@@ -1902,9 +1902,31 @@ class _MainScreenState extends State<MainScreen>
                   // MainScreen rebuild (offline bar appearing/disappearing).
                   _scheduleBottomBarMeasure();
                   return NavigationBarTheme(
-                    data: NavigationBarTheme.of(context).copyWith(height: hideLabels ? 56 : null),
+                    data: NavigationBarTheme.of(context).copyWith(
+                      height: hideLabels ? 46 : 52,
+                      iconTheme: WidgetStateProperty.resolveWith((states) {
+                        final active = states.contains(WidgetState.selected);
+                        return IconThemeData(
+                          size: 20,
+                          color: active
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        );
+                      }),
+                      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                        final active = states.contains(WidgetState.selected);
+                        return TextStyle(
+                          fontSize: 10,
+                          fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                          color: active
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        );
+                      }),
+                    ),
                     child: _buildBottomNavigationBar(context, hideLabels: hideLabels),
                   );
+
                 },
               ),
             ],

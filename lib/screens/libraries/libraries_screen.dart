@@ -35,8 +35,9 @@ import 'tabs/library_browse_tab.dart';
 import 'tabs/library_recommended_tab.dart';
 import 'tabs/library_collections_tab.dart';
 import 'tabs/library_playlists_tab.dart';
+import 'tabs/library_genres_tab.dart';
 
-enum LibraryTabType { recommended, browse, collections, playlists }
+enum LibraryTabType { recommended, browse, genres, collections, playlists }
 
 List<LibraryTabType> _getVisibleTabs(MediaLibrary library) {
   if (library.isShared) return [LibraryTabType.browse, LibraryTabType.playlists];
@@ -65,8 +66,10 @@ class _LibrariesScreenState extends State<LibrariesScreen>
   // GlobalKeys for tabs to enable refresh
   final _recommendedTabKey = GlobalKey();
   final _browseTabKey = GlobalKey();
+  final _genresTabKey = GlobalKey();
   final _collectionsTabKey = GlobalKey();
   final _playlistsTabKey = GlobalKey();
+
 
   String? _errorMessage;
   String? _selectedLibraryGlobalKey;
@@ -284,9 +287,11 @@ class _LibrariesScreenState extends State<LibrariesScreen>
     return switch (_visibleTabs[index]) {
       LibraryTabType.recommended => _recommendedTabKey.currentState,
       LibraryTabType.browse => _browseTabKey.currentState,
+      LibraryTabType.genres => _genresTabKey.currentState,
       LibraryTabType.collections => _collectionsTabKey.currentState,
       LibraryTabType.playlists => _playlistsTabKey.currentState,
     };
+
   }
 
   void _showBrowseOptionsForCurrentTab() {
@@ -365,7 +370,6 @@ class _LibrariesScreenState extends State<LibrariesScreen>
     _visibleTabs = newTabs;
     _tabFocusNodes = List.generate(newTabs.length, (i) => FocusNode(debugLabel: 'tab_chip_${newTabs[i].name}'));
     initTabNavigation();
-
     // Restore tab position: find current tab type in new set, default to first
     final newIndex = currentTabType != null ? newTabs.indexOf(currentTabType) : -1;
     if (newIndex > 0) {
@@ -376,6 +380,7 @@ class _LibrariesScreenState extends State<LibrariesScreen>
   String _getTabLabel(LibraryTabType type) => switch (type) {
     LibraryTabType.recommended => t.libraries.tabs.recommended,
     LibraryTabType.browse => t.libraries.tabs.browse,
+    LibraryTabType.genres => t.libraries.filterCategories.genre,
     LibraryTabType.collections => t.libraries.tabs.collections,
     LibraryTabType.playlists => t.libraries.tabs.playlists,
   };
@@ -408,6 +413,22 @@ class _LibrariesScreenState extends State<LibrariesScreen>
         onResetScroll: _resetOuterScroll,
         onFiltersActiveChanged: _handleBrowseFiltersActiveChanged,
       ),
+      LibraryTabType.genres => LibraryGenresTab(
+        key: _genresTabKey,
+        library: library,
+        isActive: isActive,
+        suppressAutoFocus: suppressAutoFocus,
+        onDataLoaded: () => _handleTabDataLoaded(tabIndex),
+        onBack: focusTabBar,
+        onGenreSelected: (genre) {
+          final browseIndex = _visibleTabs.indexOf(LibraryTabType.browse);
+          if (browseIndex != -1) {
+            tabController.animateTo(browseIndex);
+            (_browseTabKey.currentState as dynamic)?.applyGenreFilter(genre);
+          }
+        },
+      ),
+
       LibraryTabType.collections => LibraryCollectionsTab(
         key: _collectionsTabKey,
         library: library,

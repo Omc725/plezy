@@ -104,8 +104,6 @@ val downloadLibmpv = tasks.register("downloadLibmpv") {
   }
 }
 
-// Extract libc++_shared.so from the libmpv AAR so the app source set can package
-// it with top merge priority (see packaging { jniLibs } and sourceSets below).
 val extractMpvLibcxx = tasks.register("extractMpvLibcxx") {
   dependsOn(downloadLibmpv)
   val aar = File(mpvDir, mpvAar)
@@ -113,7 +111,7 @@ val extractMpvLibcxx = tasks.register("extractMpvLibcxx") {
   inputs.file(aar)
   outputs.dir(outDir)
   doLast {
-    outDir.deleteRecursively() // drop stale ABIs from a previous AAR version
+    outDir.deleteRecursively()
     outDir.mkdirs()
     providers.exec {
       commandLine(
@@ -129,9 +127,6 @@ val extractMpvLibcxx = tasks.register("extractMpvLibcxx") {
   }
 }
 
-// Build the Media3 JNI adapter against the same shared FFmpeg libraries that
-// libmpv packages. Headers are pinned to libmpv's FFmpeg version and remain
-// build-only; the APK contains one FFmpeg implementation for both players.
 val prepareMpvFfmpegDevelopment = tasks.register("prepareMpvFfmpegDevelopment") {
   dependsOn(downloadLibmpv)
   val aar = File(mpvDir, mpvAar)
@@ -341,8 +336,6 @@ android {
 
   defaultConfig {
     applicationId = "com.edde746.plezy"
-    // You can update the following values to match your application needs.
-    // For more information, see: https://flutter.dev/to/review-gradle-config.
     minSdk = 25 // Fire OS 6.x (API 25); overrides libmpv-android's minSdk=26
     targetSdk = flutter.targetSdkVersion
     versionCode = flutter.versionCode
@@ -383,49 +376,48 @@ android {
 
         keyAlias = keystoreProperties["keyAlias"] as String
         keyPassword = keystoreProperties["keyPassword"] as String
-        storeFile = file(keystoreProperties["storeFile"] as String)
+        
+        // Akıllı dosya yolu çözme (Path Resolution Fix):
+        val rawPath = keystoreProperties["storeFile"] as String
+        val rawFile = file(rawPath)
+        val rootFile = rootProject.file(rawPath)
+        storeFile = if (rawFile.exists()) rawFile else rootFile
+
         storePassword = keystoreProperties["storePassword"] as String
+
+        // Zorunlu Android İmzalama Standartları:
+        enableV1Signing = true
+        enableV2Signing = true
       }
     }
   }
 
   buildTypes {
     release {
-      // Only use release signing if key.properties exists (not in CI/CD)
+      isMinifyEnabled = true
+      isShrinkResources = true
+      proguardFiles(
+        getDefaultProguardFile("proguard-android-optimize.txt"),
+        "proguard-rules.pro"
+      )
+
       val keystorePropertiesFile = rootProject.file("key.properties")
       if (keystorePropertiesFile.exists()) {
         signingConfig = signingConfigs.getByName("release")
       }
-      // If key.properties doesn't exist, it will use debug signing for CI builds
+
       ndk {
         debugSymbolLevel = "FULL"
       }
     }
 
-    // Instrumentation target that runs R8 (see testBuildType below).
-    //
-    // R8 only ever ran on `release`, so every gate in this repository exercised code
-    // the shipped APK does not contain: reflective lookups, JNI callbacks and native
-    // library loading can all break under shrinking while every debug check passes.
-    // #1703 shipped that way — DefaultRenderersFactory's Class.forName for the bundled
-    // FFmpeg audio renderer failed in release builds only.
-    //
-    // Inherits release's minification and keep rules (the Flutter plugin has already
-    // installed them by the time this block runs) but stays debuggable and debug-signed,
-    // so it is an ordinary test artifact and never a publishable one. Debuggable also
-    // makes the Flutter plugin treat it as debug mode, so it uses debug Dart artifacts.
     create("minified") {
       initWith(getByName("release"))
       isDebuggable = true
-      // Resource shrinking is orthogonal to the reachability this variant guards and
-      // would only slow the instrumentation build down.
       isShrinkResources = false
       testProguardFiles("proguard-test-rules.pro")
       proguardFile("proguard-instrumentation-rules.pro")
-      // Release has no signing config unless key.properties exists, which would leave
-      // this variant unsigned and uninstallable in CI.
       signingConfig = signingConfigs.getByName("debug")
-      // Plugin subprojects only publish debug and release variants.
       matchingFallbacks += listOf("debug", "release")
       ndk {
         debugSymbolLevel = "NONE"
@@ -433,38 +425,26 @@ android {
     }
   }
 
-  // Instrumentation normally runs against `debug`; the R8 reachability gate opts into the
-  // minified variant with -Pplezy.testBuildType=minified. Only one build type can host
-  // androidTest, and the existing playback suites need media3 builder APIs the app itself
-  // never calls — which R8 legitimately shrinks — so they stay on debug.
   testBuildType = (findProperty("plezy.testBuildType") as String?) ?: "debug"
 
   packaging {
     jniLibs {
-      // pickFirst only suppresses the duplicate libc++ merge error; the
-      // sourceSets rule below makes libmpv's newer runtime win for
-      // std::from_chars<float>, while older native consumers remain ABI-compatible.
       pickFirsts.add("lib/*/libc++_shared.so")
     }
   }
 
   sourceSets {
     getByName("main") {
-      // PROJECT-scope jniLibs merge ahead of subprojects/AARs, so dependency
-      // order cannot accidentally select the older libc++ copy.
       jniLibs.srcDir(File(mpvDir, "libcxx/jni"))
     }
   }
 
   lint {
-    // Enforce the app-owned minSdk boundary without auditing upstream AndroidX.
     checkDependencies = false
     checkOnly += setOf("NewApi")
   }
 }
 
-// BackgroundWorkDiagnostics routes users to background_downloader's private
-// notification channel. Fail the build if an upstream ref changes that ID.
 val verifyBackgroundDownloaderNotificationChannel = tasks.register("verifyBackgroundDownloaderNotificationChannel") {
   val expectedChannelId = "background_downloader"
   val downloaderProject = rootProject.findProject(":background_downloader")
@@ -510,8 +490,7 @@ tasks.matching { it.name.contains("CMake") || it.name.contains("externalNative")
 tasks.matching { it.name.startsWith("pre") && it.name.endsWith("Build") }.configureEach {
   dependsOn(downloadLibmpv, extractMpvLibcxx, prepareMpvFfmpegDevelopment)
 }
-// Gradle snapshots jniLibs source dirs before task execution; this keeps the
-// extracted libmpv libc++ directory present during input discovery.
+
 tasks.matching { it.name.startsWith("merge") && it.name.endsWith("JniLibFolders") }.configureEach {
   dependsOn(extractMpvLibcxx)
 }
@@ -534,13 +513,9 @@ dependencies {
   implementation("androidx.media3:media3-datasource-cronet:$media3Version")
   implementation("org.chromium.net:cronet-embedded:143.7445.0")
 
-  // Keeping libass in-project lets its static core share the app's native
-  // packaging rules.
   implementation(project(":libass"))
 
   testImplementation("junit:junit:4.13.2")
-  // Real android.util.* implementations for tests exercising media3 classes
-  // (MatroskaExtractor uses SparseArray, which is a no-op stub on plain JVM)
   testImplementation("org.robolectric:robolectric:4.16.1")
   androidTestImplementation("androidx.test:runner:1.7.0")
   androidTestImplementation("androidx.test.ext:junit:1.3.0")

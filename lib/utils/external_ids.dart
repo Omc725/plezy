@@ -1,4 +1,7 @@
+import '../media/media_item.dart';
+
 /// Season of a parent series as numbered by each external provider.
+
 ///
 /// Populated from the Fribb mapping's `season: {tvdb: N, tmdb: M}`.
 class ExternalSeasonRef {
@@ -58,6 +61,16 @@ class ExternalIds {
   final int? tvdb;
 
   const ExternalIds({this.imdb, this.tmdb, this.tvdb});
+
+  static ExternalIds fromMediaItem(MediaItem item) {
+    if (item.raw != null && item.raw!['ProviderIds'] is Map) {
+      return ExternalIds.fromJellyfinProviderIds((item.raw!['ProviderIds'] as Map).cast<String, Object?>());
+    }
+    if (item.guid != null) {
+      return ExternalIds.fromLegacyPlexGuid(item.guid!);
+    }
+    return const ExternalIds();
+  }
 
   bool get hasAny => imdb != null || tmdb != null || tvdb != null;
 

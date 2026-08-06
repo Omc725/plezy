@@ -323,8 +323,12 @@ mixin _JellyfinPlaybackMethods on _JellyfinClientInternals {
             // forced-ness classes (#1716).
             final hasLanguage = intent?.language?.isNotEmpty ?? false;
             if (!hasLanguage) return explicit;
-            return findSourceTrackForIntent(intent!, mediaInfo.subtitleTracks)?.id;
+            return findSourceTrackForIntent(intent!, mediaInfo.subtitleTracks)?.id ?? explicit;
           }
+        }
+        final parsed = int.tryParse(track.id);
+        if (parsed != null && mediaInfo.subtitleTracks.any((row) => row.id == parsed)) {
+          return parsed;
         }
         return intent == null ? null : findSourceTrackForIntent(intent, mediaInfo.subtitleTracks)?.id;
     }

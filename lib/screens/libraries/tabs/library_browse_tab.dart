@@ -1033,6 +1033,11 @@ class _LibraryBrowseTabState extends BaseLibraryTabState<MediaItem, LibraryBrows
 
   void _resetFilters() => unawaited(_applyFilters(const {}));
 
+  void applyGenreFilter(String genre) {
+    unawaited(_applyFilters({'genre': genre}));
+  }
+
+
   Future<List<MediaFilterValue>> _loadFilterValues(MediaFilter filter) async {
     if (!mounted) return const [];
 

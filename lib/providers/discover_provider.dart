@@ -270,6 +270,34 @@ class DiscoverProvider extends ChangeNotifier with DisposableChangeNotifierMixin
     }
   }
 
+  bool _isLoadingMoreCategories = false;
+  bool get isLoadingMoreCategories => _isLoadingMoreCategories;
+
+  /// Loads the next batch of alternating Movie/Series category hubs on scroll.
+  Future<void> loadMoreCategoryHubs() async {
+    if (isDisposed || _isLoadingMoreCategories || _hubsState != DiscoverLoadState.loaded) return;
+    _isLoadingMoreCategories = true;
+
+    try {
+      final aggregation = _multiServer.aggregationService;
+      final newHubs = await aggregation.fetchNextCategoryBatch(
+        count: 2,
+        hiddenLibraryKeys: _hiddenLibraries.hiddenLibraryKeys,
+      );
+      if (isDisposed) return;
+
+      if (newHubs.isNotEmpty) {
+        _hubs = [..._hubs, ...newHubs];
+        safeNotifyListeners();
+      }
+    } catch (e) {
+      appLogger.w('Failed to load more category hubs: $e');
+    } finally {
+      _isLoadingMoreCategories = false;
+    }
+  }
+
+
   /// Fetch Continue Watching + hubs from [serverIds] only (servers that came
   /// online after the last full pass) and merge them into the loaded state.
   /// Failures keep the loaded state and leave the ids un-loaded, so the next

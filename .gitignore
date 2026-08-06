@@ -77,3 +77,10 @@ maestro/**/*.png
 
 server/deploy.sh
 server/Caddyfile
+
+# Build artifacts & keys
+key.properties
+upload-keystore.jks
+*.deb
+android/build/
+

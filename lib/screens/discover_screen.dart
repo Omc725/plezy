@@ -311,10 +311,21 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     _discover = context.read<DiscoverProvider>();
     _seenLoadGeneration = _discover.loadGeneration;
     _discover.addListener(_onDiscoverChanged);
+    _scrollController.addListener(_onScroll);
     _updateHubKeys();
     unawaited(_discover.load());
     _startAutoScroll();
   }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    if (maxScroll - currentScroll <= 600) {
+      unawaited(_discover.loadMoreCategoryHubs());
+    }
+  }
+
 
   /// Mirror provider changes into this state's UI concerns: rebuild, apply
   /// pending TV-rail focus, and keep the hero carousel index in sync — a
@@ -433,7 +444,9 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     _indicatorProgress.dispose();
     _heroIndex.dispose();
     _heroController.dispose();
+    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+
     _heroFocusNode.removeListener(_onHeroFocusChanged);
     _heroFocusNode.dispose();
     super.dispose();

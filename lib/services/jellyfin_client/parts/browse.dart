@@ -365,8 +365,37 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
   }
 
   Future<Map<String, dynamic>?> _safeFetchFilterPayload(String libraryId) async {
-    // Emby does not support /Items/Filters — skip silently.
-    if (connection.isEmby) return null;
+    if (connection.isEmby) {
+      try {
+        final response = await _http.get(
+          '/Items/Filters2',
+          queryParameters: {'userId': connection.userId, 'ParentId': libraryId},
+          timeout: _filtersTimeout,
+        );
+        throwIfHttpError(response);
+        final data = response.data;
+        if (data is Map<String, dynamic>) return data;
+      } catch (_) {}
+
+      try {
+        final response = await _http.get(
+          '/Genres',
+          queryParameters: {'userId': connection.userId, 'ParentId': libraryId},
+          timeout: _filtersTimeout,
+        );
+        throwIfHttpError(response);
+        final data = response.data;
+        if (data is Map<String, dynamic> && data['Items'] is List) {
+          final genreNames = (data['Items'] as List)
+              .map((i) => i is Map ? i['Name'] as String? : null)
+              .whereType<String>()
+              .toList();
+          return {'Genres': genreNames};
+        }
+      } catch (_) {}
+      return null;
+    }
+
     try {
       final response = await _http.get(
         '/Items/Filters',
@@ -382,6 +411,7 @@ mixin _JellyfinBrowseMethods on _JellyfinClientInternals {
       return null;
     }
   }
+
 
   /// Jellyfin has no `/sorts` listing endpoint, so this returns a hardcoded
   /// list based on the broad sort set Streamyfin exposes. Keys remain
