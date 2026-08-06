@@ -11,7 +11,7 @@
     "waitingForAuth": "Wachten op authenticatie...\nMeld je aan via je browser.",
     "useBrowser": "Gebruik browser",
     "or": "of",
-    "connectToJellyfin": "Verbinden met Jellyfin",
+    "connectToMediaBrowser": "",
     "useQuickConnect": "Quick Connect gebruiken",
     "quickConnectInstructions": "Open Quick Connect in Jellyfin en voer deze code in.",
     "quickConnectWaiting": "Wachten op goedkeuring…",
@@ -64,7 +64,20 @@
     "loading": "Laden...",
     "fullscreen": "Volledig scherm",
     "exitFullscreen": "Volledig scherm verlaten",
-    "pressBackAgainToExit": "Druk nogmaals op terug om af te sluiten"
+    "pressBackAgainToExit": "Druk nogmaals op terug om af te sluiten",
+    "ratingSource": {
+      "critic": "",
+      "audience": "",
+      "imdb": "",
+      "tmdb": "",
+      "rottenTomatoes": "",
+      "simkl": "",
+      "mal": "",
+      "anilist": "",
+      "trakt": "",
+      "rottenTomatoesCritic": "",
+      "rottenTomatoesAudience": ""
+    }
   },
   "screens": {
     "licenses": "Licenties",
@@ -505,9 +518,35 @@
     "shufflePlay": "Willekeurig afspelen",
     "shuffleNotAvailableOffline": "Willekeurig afspelen is offline niet beschikbaar",
     "fileInfo": "Bestandsinformatie",
-    "deleteFromServer": "Van server verwijderen",
-    "confirmDelete": "Deze media en bestanden van je server verwijderen?",
+    "deleteEpisodeFromServer": "",
+    "deleteSeasonFromServer": "",
+    "deleteShowFromServer": "",
+    "deleteMovieFromServer": "",
+    "deleteEpisodeTitle": "",
+    "deleteSeasonTitle": "",
+    "deleteShowTitle": "",
+    "deleteMovieTitle": "",
+    "deleteEpisodeConfirm": "",
+    "deleteSeasonConfirm": "",
+    "deleteShowConfirm": "",
+    "deleteMovieConfirm": "",
+    "deleteAnyway": "",
+    "confirmDeleteTarget": "",
     "deleteMultipleWarning": "Dit omvat alle afleveringen en hun bestanden.",
+    "deleteEpisodeCountWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteMultiPartWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteSharedFileHeading": {
+      "one": "",
+      "other": ""
+    },
+    "deleteScopeUnverifiedProbeFailed": "",
+    "deleteScopeUnverifiedNoFileInfo": "",
     "mediaDeletedSuccessfully": "Media-item succesvol verwijderd",
     "mediaFailedToDelete": "Verwijderen van media-item mislukt",
     "rate": "Beoordelen",
@@ -585,6 +624,7 @@
     "pauseButton": "Pauzeren",
     "playbackPaused": "",
     "playbackResumed": "",
+    "loadingVideo": "",
     "showPlaybackControls": "Afspeelbediening tonen",
     "hidePlaybackControls": "Afspeelbediening verbergen",
     "seekBackwardButton": "${seconds} seconden terugspoelen",
@@ -695,6 +735,8 @@
     "switchingToCompatiblePlayer": "Overschakelen naar compatibele speler...",
     "serverLimitTitle": "Afspelen mislukt",
     "serverLimitBody": "Serverfout (HTTP 500). Waarschijnlijk weigerde een bandbreedte-/transcodeerlimiet deze sessie. Vraag de eigenaar dit aan te passen.",
+    "mediaUnreadableTitle": "",
+    "mediaUnreadableBody": "",
     "logsUploaded": "Logbestanden geüpload",
     "logsUploadFailed": "Uploaden van logbestanden mislukt",
     "logId": "Logboek-ID"
@@ -778,6 +820,8 @@
     "noConnectionsHint": "Geen verbindingen — voeg er één toe om dit profiel te gebruiken.",
     "noConnections": "Geen verbindingen",
     "plexHomeAccount": "Plex Home-account",
+    "plexAccountChip": "Plex-account: ${account}",
+    "plexAccountUserChip": "${user} via ${account}",
     "connectionDefault": "Standaard",
     "connectionAs": "als ${displayName}",
     "makeDefault": "Als standaard instellen",
@@ -811,8 +855,8 @@
     "sessionExpiredOne": "Sessie verlopen voor ${name}",
     "sessionExpiredMany": "Sessie verlopen voor ${count} servers",
     "signInAgain": "Opnieuw aanmelden",
-    "editJellyfinTitle": "Jellyfin-verbinding bewerken",
-    "editJellyfinIntro": "Voeg URL's voor ${serverName} toe of verwijder ze. Plezy gebruikt de bereikbare URL met de laagste latentie."
+    "editMediaBrowserTitle": "",
+    "editMediaBrowserIntro": ""
   },
   "discover": {
     "title": "Ontdekken",
@@ -969,6 +1013,38 @@
     "copyLogs": "Logbestanden kopiëren",
     "uploadLogs": "Logbestanden uploaden"
   },
+  "startup": {
+    "failedTitle": "",
+    "failedBody": "",
+    "failedBodyRepairable": "",
+    "phaseLabel": "",
+    "showDetails": "",
+    "hideDetails": "",
+    "copyDetails": "",
+    "detailsCopied": "",
+    "uploadDetails": "",
+    "repairStorage": "",
+    "repairTitle": "",
+    "repairBodyCommon": "",
+    "repairBodyOneCredential": "",
+    "repairBodySignInsKept": "",
+    "repairBodySignInsLost": "",
+    "repairBodySessionsUncertain": "",
+    "repairConfirm": "",
+    "repairSucceeded": "",
+    "repairNeedsRestart": "",
+    "restartRequiredBody": "",
+    "quitPlezy": "",
+    "repairFailed": "",
+    "repairKeptSignIns": "",
+    "repairLostSignIns": "",
+    "repairLostSessions": "",
+    "backupTitle": "",
+    "backupWarning": "",
+    "deleteBackup": "",
+    "backupDeleted": "",
+    "previousFailureTitle": ""
+  },
   "licenses": {
     "relatedPackages": "Gerelateerde pakketten",
     "license": "Licentie",
@@ -1103,18 +1179,16 @@
       "creator": "",
       "composer": ""
     },
-    "ratingSource": {
-      "critic": "",
-      "audience": "",
-      "imdb": "",
-      "tmdb": "",
-      "rottenTomatoes": "",
-      "simkl": "",
-      "mal": "",
-      "anilist": "",
-      "trakt": "",
-      "rottenTomatoesCritic": "",
-      "rottenTomatoesAudience": ""
+    "relation": {
+      "prequel": "",
+      "sequel": "",
+      "sideStory": "",
+      "spinOff": "",
+      "alternativeVersion": "",
+      "summary": "",
+      "parentStory": "",
+      "adaptation": "",
+      "other": ""
     },
     "broadcast": "",
     "broadcastWithZone": "",
@@ -1154,17 +1228,6 @@
     },
     "totalResults": {
       "one": "",
-      "other": ""
-    },
-    "relation": {
-      "prequel": "",
-      "sequel": "",
-      "sideStory": "",
-      "spinOff": "",
-      "alternativeVersion": "",
-      "summary": "",
-      "parentStory": "",
-      "adaptation": "",
       "other": ""
     }
   },
@@ -1587,7 +1650,6 @@
     "hdr": "HDR",
     "audioOutput": "Audio-uitvoer",
     "performanceOverlay": "Prestatie-overlay",
-    "audioPassthrough": "Audio-doorvoer",
     "audioOutputDolbyAtmos": "Dolby Atmos",
     "audioOutputDolbyAudio": "Dolby Audio",
     "audioOutputSurround": "Surround",
@@ -1805,7 +1867,8 @@
       "mal": "MyAnimeList",
       "anilist": "AniList",
       "simkl": "Simkl",
-      "seerr": "Seerr"
+      "seerr": "Seerr",
+      "mdblist": ""
     },
     "deviceCode": {
       "title": "Plezy activeren op ${service}",
@@ -1838,12 +1901,12 @@
     }
   },
   "addServer": {
-    "addJellyfinTitle": "Jellyfin-server toevoegen",
+    "addMediaBrowserTitle": "",
     "serverUrls": "Server-URL's",
     "serverUrlsHelper": "Meerdere URL's toegestaan, gescheiden door komma's.",
     "findServer": "Server zoeken",
-    "searchingLocalServers": "Lokale Jellyfin-servers zoeken...",
-    "localServers": "Lokale Jellyfin-servers",
+    "searchingLocalMediaBrowserServers": "",
+    "localMediaBrowserServers": "",
     "username": "Gebruikersnaam",
     "password": "Wachtwoord",
     "signIn": "Inloggen",
@@ -1855,15 +1918,15 @@
     "addPlexTitle": "Inloggen met Plex",
     "pinExpired": "De pincode verliep voordat je kon inloggen. Probeer het opnieuw.",
     "failedToRegisterAccount": "Account registreren mislukt: ${error}",
-    "enterJellyfinUrlError": "Voer de URL van je Jellyfin-server in",
+    "enterMediaBrowserUrlError": "",
     "addConnectionTitle": "Verbinding toevoegen",
     "addConnectionTitleScoped": "Toevoegen aan ${name}",
     "signInWithPlexCard": "Inloggen met Plex",
     "signInWithPlexCardSubtitle": "Autoriseer dit apparaat. Gedeelde servers worden toegevoegd.",
     "signInWithPlexCardSubtitleScoped": "Autoriseer een Plex-account. Home-gebruikers worden profielen.",
-    "connectToJellyfinCard": "Verbinden met Jellyfin",
-    "connectToJellyfinCardSubtitle": "Voer je server-URL, gebruikersnaam en wachtwoord in.",
-    "connectToJellyfinCardSubtitleScoped": "Log in op een Jellyfin-server. Wordt gekoppeld aan ${name}.",
+    "connectToMediaBrowserCard": "",
+    "connectToMediaBrowserCardSubtitle": "",
+    "connectToMediaBrowserCardSubtitleScoped": "",
     "borrowFromAnotherProfile": "Van een ander profiel lenen",
     "borrowFromAnotherProfileSubtitle": "Hergebruik de verbinding van een ander profiel. Voor profielen met pincodebeveiliging is een pincode vereist."
   }

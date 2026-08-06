@@ -632,14 +632,10 @@ class _VideoSettingsSheetState extends State<VideoSettingsSheet> {
             },
           ),
 
-        // Audio Passthrough (desktop, Android TV, and Apple TV)
-        if (PlatformDetector.supportsAudioPassthrough())
-          _SettingsToggleItem(
-            pref: SettingsService.audioPassthrough,
-            icon: Symbols.surround_sound_rounded,
-            title: t.videoSettings.audioPassthrough,
-            onAfterWrite: widget.player.setAudioPassthrough,
-          ),
+        // Audio Passthrough is not here: it configures the audio output route rather
+        // than this playback, and applying it mid-stream bounces the audio renderer and
+        // re-decides video tunneling. It lives in Settings > Video Playback next to
+        // Tunneled Playback, which is applied the same way — at the next player start.
 
         // Dolby playback badge. The Dolby application guide requires the app
         // to reflect AVAudioSession.renderingMode; Apple only resolves that
@@ -730,17 +726,18 @@ class _VideoSettingsSheetState extends State<VideoSettingsSheet> {
           ),
 
         if (kDebugMode)
-          FocusableListTile(
-            leading: AppIcon(Symbols.bug_report_rounded, fill: 1, color: tokens(context).textMuted),
-            title: const Text('Simulate HTTP 500 from server'),
-            onTap: () {
-              final player = widget.player;
-              OverlaySheetController.of(context).close();
-              if (player is PlayerBase) {
-                player.debugSimulateServer500();
-              }
-            },
-          ),
+          for (final status in const [500, 404])
+            FocusableListTile(
+              leading: AppIcon(Symbols.bug_report_rounded, fill: 1, color: tokens(context).textMuted),
+              title: Text('Simulate HTTP $status from server'),
+              onTap: () {
+                final player = widget.player;
+                OverlaySheetController.of(context).close();
+                if (player is PlayerBase) {
+                  player.debugSimulateServerHttpError(status);
+                }
+              },
+            ),
       ],
     );
   }

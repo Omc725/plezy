@@ -11,7 +11,7 @@
     "waitingForAuth": "Venter på autentisering...\nLogg inn fra nettleseren.",
     "useBrowser": "Bruk nettleser",
     "or": "eller",
-    "connectToJellyfin": "Koble til Jellyfin",
+    "connectToMediaBrowser": "",
     "useQuickConnect": "Bruk Quick Connect",
     "quickConnectInstructions": "Åpne Quick Connect i Jellyfin og skriv inn denne koden.",
     "quickConnectWaiting": "Venter på godkjenning…",
@@ -64,7 +64,20 @@
     "loading": "Laster...",
     "fullscreen": "Fullskjerm",
     "exitFullscreen": "Avslutt fullskjerm",
-    "pressBackAgainToExit": "Trykk på Tilbake en gang til for å avslutte"
+    "pressBackAgainToExit": "Trykk på Tilbake en gang til for å avslutte",
+    "ratingSource": {
+      "critic": "",
+      "audience": "",
+      "imdb": "",
+      "tmdb": "",
+      "rottenTomatoes": "",
+      "simkl": "",
+      "mal": "",
+      "anilist": "",
+      "trakt": "",
+      "rottenTomatoesCritic": "",
+      "rottenTomatoesAudience": ""
+    }
   },
   "screens": {
     "licenses": "Lisenser",
@@ -505,9 +518,35 @@
     "shufflePlay": "Tilfeldig avspilling",
     "shuffleNotAvailableOffline": "Tilfeldig avspilling er ikke tilgjengelig uten nett",
     "fileInfo": "Filinformasjon",
-    "deleteFromServer": "Slett fra server",
-    "confirmDelete": "Slette dette mediet og filene fra serveren?",
+    "deleteEpisodeFromServer": "",
+    "deleteSeasonFromServer": "",
+    "deleteShowFromServer": "",
+    "deleteMovieFromServer": "",
+    "deleteEpisodeTitle": "",
+    "deleteSeasonTitle": "",
+    "deleteShowTitle": "",
+    "deleteMovieTitle": "",
+    "deleteEpisodeConfirm": "",
+    "deleteSeasonConfirm": "",
+    "deleteShowConfirm": "",
+    "deleteMovieConfirm": "",
+    "deleteAnyway": "",
+    "confirmDeleteTarget": "",
     "deleteMultipleWarning": "Dette inkluderer alle episoder og deres filer.",
+    "deleteEpisodeCountWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteMultiPartWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteSharedFileHeading": {
+      "one": "",
+      "other": ""
+    },
+    "deleteScopeUnverifiedProbeFailed": "",
+    "deleteScopeUnverifiedNoFileInfo": "",
     "mediaDeletedSuccessfully": "Medieelement slettet",
     "mediaFailedToDelete": "Kunne ikke slette medieelement",
     "rate": "Vurder",
@@ -585,6 +624,7 @@
     "pauseButton": "Pause",
     "playbackPaused": "",
     "playbackResumed": "",
+    "loadingVideo": "",
     "showPlaybackControls": "Vis avspillingskontroller",
     "hidePlaybackControls": "Skjul avspillingskontroller",
     "seekBackwardButton": "Spol tilbake ${seconds} sekunder",
@@ -695,6 +735,8 @@
     "switchingToCompatiblePlayer": "Bytter til kompatibel spiller...",
     "serverLimitTitle": "Avspilling mislyktes",
     "serverLimitBody": "Serverfeil (HTTP 500). En båndbredde-/transkodingsgrense avviste trolig økten. Be eieren justere den.",
+    "mediaUnreadableTitle": "",
+    "mediaUnreadableBody": "",
     "logsUploaded": "Logger lastet opp",
     "logsUploadFailed": "Kunne ikke laste opp logger",
     "logId": "Logg-ID"
@@ -778,6 +820,8 @@
     "noConnectionsHint": "Ingen tilkoblinger — legg til én for å bruke denne profilen.",
     "noConnections": "Ingen tilkoblinger",
     "plexHomeAccount": "Plex Home-konto",
+    "plexAccountChip": "Plex-konto: ${account}",
+    "plexAccountUserChip": "${user} via ${account}",
     "connectionDefault": "Standard",
     "connectionAs": "som ${displayName}",
     "makeDefault": "Gjør til standard",
@@ -811,8 +855,8 @@
     "sessionExpiredOne": "Økten er utløpt for ${name}",
     "sessionExpiredMany": "Økten er utløpt for ${count} servere",
     "signInAgain": "Logg inn igjen",
-    "editJellyfinTitle": "Rediger Jellyfin-tilkobling",
-    "editJellyfinIntro": "Legg til eller fjern URL-er for ${serverName}. Plezy bruker den tilgjengelige URL-en med lavest forsinkelse."
+    "editMediaBrowserTitle": "",
+    "editMediaBrowserIntro": ""
   },
   "discover": {
     "title": "Oppdag",
@@ -969,6 +1013,38 @@
     "copyLogs": "Kopier logger",
     "uploadLogs": "Last opp logger"
   },
+  "startup": {
+    "failedTitle": "",
+    "failedBody": "",
+    "failedBodyRepairable": "",
+    "phaseLabel": "",
+    "showDetails": "",
+    "hideDetails": "",
+    "copyDetails": "",
+    "detailsCopied": "",
+    "uploadDetails": "",
+    "repairStorage": "",
+    "repairTitle": "",
+    "repairBodyCommon": "",
+    "repairBodyOneCredential": "",
+    "repairBodySignInsKept": "",
+    "repairBodySignInsLost": "",
+    "repairBodySessionsUncertain": "",
+    "repairConfirm": "",
+    "repairSucceeded": "",
+    "repairNeedsRestart": "",
+    "restartRequiredBody": "",
+    "quitPlezy": "",
+    "repairFailed": "",
+    "repairKeptSignIns": "",
+    "repairLostSignIns": "",
+    "repairLostSessions": "",
+    "backupTitle": "",
+    "backupWarning": "",
+    "deleteBackup": "",
+    "backupDeleted": "",
+    "previousFailureTitle": ""
+  },
   "licenses": {
     "relatedPackages": "Relaterte pakker",
     "license": "Lisens",
@@ -1103,18 +1179,16 @@
       "creator": "",
       "composer": ""
     },
-    "ratingSource": {
-      "critic": "",
-      "audience": "",
-      "imdb": "",
-      "tmdb": "",
-      "rottenTomatoes": "",
-      "simkl": "",
-      "mal": "",
-      "anilist": "",
-      "trakt": "",
-      "rottenTomatoesCritic": "",
-      "rottenTomatoesAudience": ""
+    "relation": {
+      "prequel": "",
+      "sequel": "",
+      "sideStory": "",
+      "spinOff": "",
+      "alternativeVersion": "",
+      "summary": "",
+      "parentStory": "",
+      "adaptation": "",
+      "other": ""
     },
     "broadcast": "",
     "broadcastWithZone": "",
@@ -1154,17 +1228,6 @@
     },
     "totalResults": {
       "one": "",
-      "other": ""
-    },
-    "relation": {
-      "prequel": "",
-      "sequel": "",
-      "sideStory": "",
-      "spinOff": "",
-      "alternativeVersion": "",
-      "summary": "",
-      "parentStory": "",
-      "adaptation": "",
       "other": ""
     }
   },
@@ -1587,7 +1650,6 @@
     "hdr": "HDR",
     "audioOutput": "Lydutgang",
     "performanceOverlay": "Ytelsesoverlegg",
-    "audioPassthrough": "Direkte lydutgang",
     "audioOutputDolbyAtmos": "Dolby Atmos",
     "audioOutputDolbyAudio": "Dolby Audio",
     "audioOutputSurround": "Surround",
@@ -1805,7 +1867,8 @@
       "mal": "MyAnimeList",
       "anilist": "AniList",
       "simkl": "Simkl",
-      "seerr": "Seerr"
+      "seerr": "Seerr",
+      "mdblist": ""
     },
     "deviceCode": {
       "title": "Aktiver Plezy på ${service}",
@@ -1838,12 +1901,12 @@
     }
   },
   "addServer": {
-    "addJellyfinTitle": "Legg til Jellyfin-server",
+    "addMediaBrowserTitle": "",
     "serverUrls": "Server-URL-er",
     "serverUrlsHelper": "Flere URL-er er tillatt, atskilt med komma.",
     "findServer": "Finn server",
-    "searchingLocalServers": "Søker etter lokale Jellyfin-servere...",
-    "localServers": "Lokale Jellyfin-servere",
+    "searchingLocalMediaBrowserServers": "",
+    "localMediaBrowserServers": "",
     "username": "Brukernavn",
     "password": "Passord",
     "signIn": "Logg inn",
@@ -1855,15 +1918,15 @@
     "addPlexTitle": "Logg inn med Plex",
     "pinExpired": "PIN-koden utløp før innloggingen var fullført. Prøv igjen.",
     "failedToRegisterAccount": "Kunne ikke registrere kontoen: ${error}",
-    "enterJellyfinUrlError": "Oppgi URL-en til Jellyfin-serveren din",
+    "enterMediaBrowserUrlError": "",
     "addConnectionTitle": "Legg til tilkobling",
     "addConnectionTitleScoped": "Legg til for ${name}",
     "signInWithPlexCard": "Logg inn med Plex",
     "signInWithPlexCardSubtitle": "Autoriser denne enheten. Delte servere legges til.",
     "signInWithPlexCardSubtitleScoped": "Autoriser en Plex-konto. Home-brukere blir profiler.",
-    "connectToJellyfinCard": "Koble til Jellyfin",
-    "connectToJellyfinCardSubtitle": "Skriv inn server-URL, brukernavn og passord.",
-    "connectToJellyfinCardSubtitleScoped": "Logg på en Jellyfin-server. Knyttes til ${name}.",
+    "connectToMediaBrowserCard": "",
+    "connectToMediaBrowserCardSubtitle": "",
+    "connectToMediaBrowserCardSubtitleScoped": "",
     "borrowFromAnotherProfile": "Lån fra en annen profil",
     "borrowFromAnotherProfileSubtitle": "Gjenbruk en annen profils tilkobling. PIN-beskyttede profiler krever PIN."
   }

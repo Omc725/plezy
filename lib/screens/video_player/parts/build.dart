@@ -79,7 +79,7 @@ extension _VideoPlayerBuildMethods on VideoPlayerScreenState {
   Widget _buildLoadingSpinner() {
     return const Scaffold(
       backgroundColor: Colors.black,
-      body: Center(child: CircularProgressIndicator(color: Colors.white)),
+      body: Center(child: PlayerLoadingIndicator()),
     );
   }
 
@@ -95,7 +95,7 @@ extension _VideoPlayerBuildMethods on VideoPlayerScreenState {
       fit: StackFit.expand,
       children: [
         Video(player: bootstrapPlayer, hasFirstFrame: _hasFirstFrame),
-        const Center(child: CircularProgressIndicator(color: Colors.white)),
+        const Center(child: PlayerLoadingIndicator()),
       ],
     );
   }
@@ -186,7 +186,11 @@ extension _VideoPlayerBuildMethods on VideoPlayerScreenState {
           final startZoom = _pinchStartZoomScale;
           final filterManager = _videoFilterManager;
           if (!_isPinchZooming || startZoom == null || filterManager == null) return;
-          final nextZoomScale = VideoFilterManager.normalizeZoomScale(startZoom * details.scale);
+          // Snap through 100% so pinching back undoes a zoom exactly, which is
+          // the touch path to an unzoomed picture (#1505).
+          final nextZoomScale = VideoFilterManager.normalizeZoomScale(
+            VideoFilterManager.snapPinchZoomScale(startZoom * details.scale),
+          );
 
           if (!_pinchZoomChanged) {
             if ((details.scale - 1.0).abs() <= _pinchZoomActivationThreshold) {
@@ -254,7 +258,11 @@ extension _VideoPlayerBuildMethods on VideoPlayerScreenState {
                     if (widget.isLive) {
                       onNext = _hasNextChannel ? () => _switchLiveChannel(1) : null;
                     } else {
-                      onNext = (_nextEpisode != null && authority.canNavigateMediaItems) ? _playNext : null;
+                      // _playNext no-ops while a navigation is in flight; matching that here
+                      // keeps the control from looking live while it does nothing.
+                      onNext = (_nextEpisode != null && !_isLoadingNext && authority.canNavigateMediaItems)
+                          ? _playNext
+                          : null;
                     }
 
                     VoidCallback? onPrevious;

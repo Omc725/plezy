@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../providers/watch_state_store.dart';
 import '../media/media_backend.dart';
 import '../media/media_item.dart';
+import '../media/media_item_labels.dart';
 import '../media/media_item_types.dart';
 import '../media/media_kind.dart';
 import '../media/library_query.dart';
@@ -24,6 +25,7 @@ import '../services/playlist_items_loader.dart';
 import '../services/watch_actions.dart';
 import '../models/transcode_quality_preset.dart';
 import '../utils/content_utils.dart';
+import '../utils/delete_impact.dart';
 import '../utils/download_version_utils.dart';
 import '../utils/download_utils.dart';
 import '../utils/quality_preset_labels.dart';
@@ -81,6 +83,30 @@ bool isAdminActionAllowedForMediaItem({
       itemBackend == MediaBackend.plex && activeProfile != null && activeProfile.isPlexHome && !activeProfile.plexAdmin;
   return isOwnerOrAdmin && !blockedByPlexHomeRole;
 }
+
+/// Whether "Delete from server" may be offered for an item.
+///
+/// Deliberately not folded into [isAdminActionAllowedForMediaItem]: on MediaBrowser servers
+/// the admin bit says nothing about deletion. `BaseItem.IsAuthorizedToDelete`
+/// consults `EnableContentDeletion` and the per-library grant only, and only
+/// the auto-created first user gets the former for free — so an administrator
+/// can lack the right (issue #1749) and a plain user can hold it. The server's
+/// per-item answer ([resolvedItemPermission], from
+/// [MediaDeletionPermissionClient]) is therefore the sole MediaBrowser condition,
+/// and anything unknown — offline, request failed, timed out, item invisible —
+/// stays hidden rather than offering a button that 401s.
+///
+/// Plex has no per-item permission on the wire, so it keeps the account-level
+/// owner/admin gate.
+bool isMediaDeletionAllowed({
+  required MediaBackend? itemBackend,
+  required bool? resolvedItemPermission,
+  required bool isAdminActionAllowed,
+}) => switch (itemBackend) {
+  null => false,
+  MediaBackend.jellyfin || MediaBackend.emby => resolvedItemPermission == true,
+  MediaBackend.plex => isAdminActionAllowed,
+};
 
 /// A reusable wrapper widget that adds a context menu (long press / right click)
 /// to any media item with appropriate actions based on the item type.
@@ -207,6 +233,35 @@ class MediaContextMenuState extends State<MediaContextMenu> {
   /// that work for Jellyfin too (downloads, basic browse).
   MediaServerClient _getMediaClientForItem() => context.getMediaClientWithFallback(serverIdOrNull(_itemServerId));
 
+  /// Ask the server whether the signed-in user may delete [item] right now.
+  ///
+  /// Returns `null` when the backend exposes no per-item permission (Plex),
+  /// which leaves the account-level gate in charge, and `false` for every
+  /// unknown on a backend that does expose one — offline, server down, request
+  /// failed or timed out. The probe blocks the menu opening, so it is bounded
+  /// by `MediaServerTimeouts.jellyfinDeletePermission` and does not chase
+  /// failover endpoints: a stalled endpoint hunt would be felt as a frozen
+  /// long-press, and hiding one entry is the cheaper failure.
+  ///
+  /// Backend detection comes first so a menu on a backend without the
+  /// capability neither probes nor touches offline state — the read would
+  /// otherwise be a new dependency for every screen that shows a movie row.
+  Future<bool?> _resolveDeletePermission({
+    required MediaServerClient? client,
+    required MediaItem? item,
+    required bool serverOnline,
+  }) async {
+    final permissionClient = client is MediaDeletionPermissionClient ? client as MediaDeletionPermissionClient : null;
+    if (item == null || permissionClient == null) return null;
+    if (!serverOnline || context.read<OfflineModeProvider>().isOffline) return false;
+    try {
+      return await permissionClient.fetchDeletePermission(item);
+    } catch (e, st) {
+      appLogger.w('Delete permission probe failed', error: e, stackTrace: st);
+      return false;
+    }
+  }
+
   void _showContextMenu(BuildContext context) async {
     if (_isContextMenuOpen) return;
     _isContextMenuOpen = true;
@@ -221,7 +276,7 @@ class MediaContextMenuState extends State<MediaContextMenu> {
     final isCollection = mediaKind == MediaKind.collection;
 
     // Backend-aware gate: a few menu items remain Plex-only because the
-    // server-side feature has no Jellyfin equivalent (match/unmatch).
+    // server-side feature has no MediaBrowser equivalent (match/unmatch).
     // No fallback: items without a backend marker show only neutral actions —
     // dispatching a Plex-only action against an unknown-backend item could
     // crash or hit the wrong server.
@@ -237,7 +292,7 @@ class MediaContextMenuState extends State<MediaContextMenu> {
 
     // Check if user has admin privileges. Backend-neutral: Plex uses the
     // server-owned flag (folded with the active Plex Home profile's admin
-    // bit, when applicable); Jellyfin uses `JellyfinConnection.isAdministrator`
+    // bit, when applicable); MediaBrowser servers use `JellyfinConnection.isAdministrator`
     // captured at sign-in.
     final multiServerProvider = Provider.of<MultiServerProvider>(context, listen: false);
     final activeProfile = context.read<ActiveProfileProvider>().active;
@@ -259,6 +314,32 @@ class MediaContextMenuState extends State<MediaContextMenu> {
         _itemServerId != null && multiServerProvider.serverManager.isClientOnline(ServerId(_itemServerId!));
     final canRemoveFromContinueWatching = mediaClient?.capabilities.continueWatchingRemoval ?? false;
     final canEditMetadata = isAdmin && supportsMetadataEdit(mediaClient, mediaKind);
+
+    // Deletion is the one gate that asks the server per item; see
+    // [isMediaDeletionAllowed]. Only kinds that can actually be deleted pay
+    // for the round trip, and only on a backend that answers it.
+    final isDeletableKind =
+        mediaKind == MediaKind.episode ||
+        mediaKind == MediaKind.movie ||
+        mediaKind == MediaKind.show ||
+        mediaKind == MediaKind.season;
+    final canDeleteFromServer =
+        isDeletableKind &&
+        isMediaDeletionAllowed(
+          itemBackend: itemBackend,
+          resolvedItemPermission: await _resolveDeletePermission(
+            client: mediaClient,
+            item: mediaItem,
+            serverOnline: itemServerOnline,
+          ),
+          isAdminActionAllowed: isAdmin,
+        );
+    if (!mounted || !context.mounted) {
+      // The awaited probe outlived the widget; the try/finally that normally
+      // clears this flag only starts once the menu is on screen.
+      _isContextMenuOpen = false;
+      return;
+    }
 
     final menuActions = <_MenuAction>[];
 
@@ -316,7 +397,7 @@ class MediaContextMenuState extends State<MediaContextMenu> {
         // reachable (capabilities stay truthy for offline servers).
         if (itemServerOnline && (mediaClient?.capabilities.instantMix ?? false)) {
           menuActions.add(
-            _MenuAction(value: 'music_instant_mix', icon: Symbols.instant_mix_rounded, label: t.music.instantMix),
+            _MenuAction(value: 'music_instant_mix', icon: Symbols.wand_stars_rounded, label: t.music.instantMix),
           );
         }
 
@@ -397,7 +478,7 @@ class MediaContextMenuState extends State<MediaContextMenu> {
         );
       }
 
-      // Match / Unmatch — Plex-only (Jellyfin doesn't expose match agents).
+      // Match / Unmatch — Plex-only (MediaBrowser servers don't expose match agents).
       if (isPlex && isAdmin && (mediaKind == MediaKind.movie || mediaKind == MediaKind.show)) {
         final isUnmatched = _isUnmatched(mediaItem);
         menuActions.add(
@@ -413,8 +494,8 @@ class MediaContextMenuState extends State<MediaContextMenu> {
       }
 
       // Remove from Collection (only when viewing items within a collection).
-      // Plex-only — uses `removeFromCollection` API; Jellyfin's collection
-      // membership API isn't wired here yet.
+      // Plex-only — uses `removeFromCollection` API; MediaBrowser collection
+      // membership APIs aren't wired here yet.
       if (isPlex && widget.collectionId != null) {
         menuActions.add(
           _MenuAction(
@@ -467,12 +548,15 @@ class MediaContextMenuState extends State<MediaContextMenu> {
         );
       }
 
-      // File Info (for episodes and movies). Backend-neutral — both
-      // PlexClient and JellyfinClient implement [getFileInfo], reading
-      // codec/stream metadata from `Media`/`MediaSources` respectively.
-      // Hidden when the item has no backend marker so we don't fan out
-      // to an arbitrary client.
-      if (itemBackend != null && (mediaKind == MediaKind.episode || mediaKind == MediaKind.movie)) {
+      // File Info — every file-backed leaf kind (movies, episodes, tracks,
+      // clips). Backend-neutral: both PlexClient and JellyfinClient implement
+      // [MediaServerClient.getFileInfo], reading codec/stream metadata from
+      // `Media`/`MediaSources` respectively. Container kinds are excluded by
+      // [MediaKind.hasFileInfo] because neither backend attaches media sources
+      // to them — a show/season/album/artist entry would only ever produce the
+      // "not available" snackbar. Hidden when the item has no backend marker
+      // so we don't fan out to an arbitrary client.
+      if (itemBackend != null && mediaKind != null && mediaKind.hasFileInfo) {
         menuActions.add(_MenuAction(value: 'fileinfo', icon: Symbols.info_rounded, label: t.mediaMenu.fileInfo));
       }
 
@@ -538,7 +622,7 @@ class MediaContextMenuState extends State<MediaContextMenu> {
 
       // Add to... (for episodes, movies, shows, and seasons). Plex-only —
       // uses `buildMetadataUri` + `addToPlaylist` / `addToCollection`. The
-      // Jellyfin item-add API is different and not wired here yet.
+      // MediaBrowser item-add APIs are different and not wired here yet.
       if (isPlex &&
           (mediaKind == MediaKind.episode ||
               mediaKind == MediaKind.movie ||
@@ -547,20 +631,22 @@ class MediaContextMenuState extends State<MediaContextMenu> {
         menuActions.add(_MenuAction(value: 'add_to', icon: Symbols.add_rounded, label: t.common.addTo));
       }
 
-      // Delete media item (for episodes, movies, shows, and seasons) — admin
-      // only. Backend-neutral: routed through `MediaServerClient.deleteMediaItem`,
-      // which both Plex and Jellyfin implement (DELETE /library/metadata/{id}
-      // and DELETE /Items/{id} respectively).
-      if (isAdmin &&
-          (mediaKind == MediaKind.episode ||
-              mediaKind == MediaKind.movie ||
-              mediaKind == MediaKind.show ||
-              mediaKind == MediaKind.season)) {
+      // Delete media item (for episodes, movies, shows, and seasons). Routed
+      // through `MediaServerClient.deleteMediaItem`, which every backend
+      // implements (DELETE /library/metadata/{id} for Plex and
+      // DELETE /Items/{id} for MediaBrowser servers); the kind and permission checks were
+      // resolved together above.
+      //
+      // The label names the kind. One shared "Delete from server" string for
+      // an episode, a season and a whole show is what let #1781 happen: the
+      // reporter hit the show-level entry believing it acted on the episode
+      // he had highlighted.
+      if (canDeleteFromServer) {
         menuActions.add(
           _MenuAction(
             value: 'delete_media',
             icon: Symbols.delete_forever_rounded,
-            label: t.mediaMenu.deleteFromServer,
+            label: _deleteMenuLabel(mediaKind),
             destructive: true,
           ),
         );
@@ -588,7 +674,7 @@ class MediaContextMenuState extends State<MediaContextMenu> {
     // fall back to a hostless modal sheet).
     final selected = await showAdaptiveAppMenu<String>(
       this.context,
-      title: _itemDisplayTitle(),
+      title: _itemMenuTitle(),
       entries: _menuEntries(menuActions),
       position: position,
       focusFirstItem: openedFromKeyboard,
@@ -1665,6 +1751,23 @@ class MediaContextMenuState extends State<MediaContextMenu> {
     _ => '',
   };
 
+  /// Header for the menu itself. Unlike [_itemDisplayTitle] — which stays on
+  /// [MediaItem.displayTitle] for snackbars and the file-info sheet — this
+  /// names the exact item the entries will act on, so an episode's menu is no
+  /// longer headed by its show's name (#1781).
+  String _itemMenuTitle() => switch (widget.item) {
+    final MediaItem item => formatMediaTargetLabel(item),
+    MediaPlaylist(:final displayTitle) => displayTitle,
+    _ => '',
+  };
+
+  String _deleteMenuLabel(MediaKind? kind) => switch (kind) {
+    MediaKind.season => t.mediaMenu.deleteSeasonFromServer,
+    MediaKind.show => t.mediaMenu.deleteShowFromServer,
+    MediaKind.movie => t.mediaMenu.deleteMovieFromServer,
+    _ => t.mediaMenu.deleteEpisodeFromServer,
+  };
+
   Future<void> _handleManageSyncRule(BuildContext context) => manageSyncRule(
     context,
     downloadProvider: context.read<DownloadProvider>(),
@@ -1702,24 +1805,47 @@ class MediaContextMenuState extends State<MediaContextMenu> {
     displayTitle: _itemDisplayTitle(),
   );
 
-  /// Handle delete media item action
-  /// This permanently removes the media item and its associated files from the server
+  /// Handle delete media item action.
+  ///
+  /// Permanently removes the item and its files from the server. Everything
+  /// before the DELETE exists to make the blast radius legible: the dialog
+  /// names the exact target, states the kind, and — for a single playable
+  /// item — reports what the server will actually destroy. When that cannot
+  /// be established, the dialog says so instead of implying single-file
+  /// scope (#1781).
   Future<void> _handleDeleteMediaItem(BuildContext context, MediaKind? mediaKind) async {
     final item = _mediaItem!;
-    final isMultipleMediaItems = mediaKind == MediaKind.show || mediaKind == MediaKind.season;
+    final client = _getMediaClientForItem();
 
-    // Show confirmation dialog
+    // Shows and seasons are known-broad by definition; probing their parts
+    // would be a per-episode fan-out to restate what the copy already says.
+    final probesImpact = mediaKind == MediaKind.episode || mediaKind == MediaKind.movie;
+    DeleteImpact? impact;
+    if (probesImpact) {
+      showLoadingDialog(context);
+      try {
+        impact = await resolveDeleteImpact(item: item, client: client);
+      } finally {
+        // The spinner traps system back and nothing else pushes during the
+        // probe, so it is still the top route here. A `Navigator.canPop`
+        // guard would only test "is anything poppable", which is true of the
+        // screen underneath — exactly the route that must not close.
+        if (context.mounted) Navigator.pop(context);
+      }
+      if (!context.mounted) return;
+    }
+
     final confirmed = await showDeleteConfirmation(
       context,
-      title: t.mediaMenu.deleteFromServer,
-      message: "${t.mediaMenu.confirmDelete}${isMultipleMediaItems ? "\n\n${t.mediaMenu.deleteMultipleWarning}" : ""}",
-      confirmText: t.mediaMenu.deleteFromServer,
+      title: _deleteDialogTitle(mediaKind),
+      message: t.mediaMenu.confirmDeleteTarget(title: formatMediaTargetLabel(item)),
+      warning: _deleteWarning(item, mediaKind, impact),
+      confirmText: impact != null && impact.isUnverified ? t.mediaMenu.deleteAnyway : _deleteConfirmLabel(mediaKind),
     );
 
     if (!confirmed || !context.mounted) return;
 
     try {
-      final client = _getMediaClientForItem();
       final success = await client.deleteMediaItem(item);
 
       if (context.mounted) {
@@ -1727,6 +1853,11 @@ class MediaContextMenuState extends State<MediaContextMenu> {
           showSuccessSnackBar(context, t.mediaMenu.mediaDeletedSuccessfully);
           // Broadcast deletion event for cross-screen propagation
           DeletionNotifier().notifyDeletedItem(item: item);
+          // Siblings sharing the deleted file died with it server-side. Without
+          // their own events their rows linger until a full refresh.
+          for (final sibling in impact?.sharedWith ?? const <MediaItem>[]) {
+            DeletionNotifier().notifyDeletedItem(item: sibling);
+          }
           // Backward-compatible list refresh for screens that are not DeletionAware yet
           _notifyListRefresh();
         } else {
@@ -1739,6 +1870,52 @@ class MediaContextMenuState extends State<MediaContextMenu> {
         showErrorSnackBar(context, t.mediaMenu.mediaFailedToDelete);
       }
     }
+  }
+
+  String _deleteDialogTitle(MediaKind? kind) => switch (kind) {
+    MediaKind.season => t.mediaMenu.deleteSeasonTitle,
+    MediaKind.show => t.mediaMenu.deleteShowTitle,
+    MediaKind.movie => t.mediaMenu.deleteMovieTitle,
+    _ => t.mediaMenu.deleteEpisodeTitle,
+  };
+
+  String _deleteConfirmLabel(MediaKind? kind) => switch (kind) {
+    MediaKind.season => t.mediaMenu.deleteSeasonConfirm,
+    MediaKind.show => t.mediaMenu.deleteShowConfirm,
+    MediaKind.movie => t.mediaMenu.deleteMovieConfirm,
+    _ => t.mediaMenu.deleteEpisodeConfirm,
+  };
+
+  /// The danger block under the confirmation message, or null when the delete
+  /// is verified to remove exactly the named item.
+  String? _deleteWarning(MediaItem item, MediaKind? kind, DeleteImpact? impact) {
+    if (kind == MediaKind.show || kind == MediaKind.season) {
+      // leafCount is the episode total; a season falls back to its direct
+      // children. Neither is guaranteed, so keep the countless sentence.
+      final episodes = item.leafCount ?? (kind == MediaKind.season ? item.childCount : null);
+      return episodes != null && episodes > 0
+          ? t.mediaMenu.deleteEpisodeCountWarning(n: episodes)
+          : t.mediaMenu.deleteMultipleWarning;
+    }
+
+    if (impact == null) return null;
+
+    if (impact.isUnverified) {
+      return switch (impact.reason) {
+        DeleteImpactUnverifiedReason.noFileInfo => t.mediaMenu.deleteScopeUnverifiedNoFileInfo,
+        _ => t.mediaMenu.deleteScopeUnverifiedProbeFailed,
+      };
+    }
+
+    if (!impact.isBroad) return null;
+
+    final lines = <String>[];
+    if (impact.files.length > 1) lines.add(t.mediaMenu.deleteMultiPartWarning(n: impact.files.length));
+    if (impact.sharedWith.isNotEmpty) {
+      lines.add(t.mediaMenu.deleteSharedFileHeading(n: impact.sharedWith.length));
+      lines.addAll(impact.sharedWith.map((sibling) => '\u2022 ${formatMediaTargetLabel(sibling)}'));
+    }
+    return lines.join('\n');
   }
 
   @override

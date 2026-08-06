@@ -19,6 +19,7 @@ class VideoControlsPlaybackExtrasLoader {
 
   Future<PlaybackExtras?> load({bool forceRefresh = false}) async {
     PlaybackExtras? extras;
+
     if (client == null) {
       extras = await _loadFromCacheOnly(cacheServerId: await _resolveCacheServerId());
     } else {
@@ -32,22 +33,14 @@ class VideoControlsPlaybackExtrasLoader {
           forceChapterFallback: settings.read(SettingsService.forceSkipMarkerFallback),
           forceRefresh: forceRefresh,
         );
-        appLogger.d('_loadPlaybackExtras: got ${extras.chapters.length} chapters');
+        appLogger.d('_loadPlaybackExtras: got ${_describe(extras)}');
       } catch (e) {
+
         appLogger.d('_loadPlaybackExtras: network path failed, trying cache fallback');
-        try {
-          final settings = await SettingsService.getInstance();
-          extras = await client!.fetchPlaybackExtrasFromCacheOnly(
-            metadata.id,
-            introPattern: settings.read(SettingsService.introPattern),
-            creditsPattern: settings.read(SettingsService.creditsPattern),
-            forceChapterFallback: settings.read(SettingsService.forceSkipMarkerFallback),
-          );
-        } catch (cacheError) {
-          appLogger.d('_loadPlaybackExtras: cache fallback failed', error: cacheError);
-        }
+        extras = await _loadFromCacheOnly(cacheServerId: client!.serverId);
       }
     }
+
 
     // Aşama 1: Dosya içi bölümler (Chapters) ve sunucu marker'larının kontrolü
     final fileHasIntro = extras?.markers.any((m) => m.type == 'intro') ?? false;
@@ -112,7 +105,7 @@ class VideoControlsPlaybackExtrasLoader {
     }
     try {
       final settings = await SettingsService.getInstance();
-      return CachedPlaybackMetadataService.fetchPlaybackExtras(
+      final extras = await CachedPlaybackMetadataService.fetchPlaybackExtras(
         backend: metadata.backend,
         cacheServerId: cacheServerId,
         itemId: metadata.id,
@@ -120,10 +113,25 @@ class VideoControlsPlaybackExtrasLoader {
         creditsPattern: settings.read(SettingsService.creditsPattern),
         forceChapterFallback: settings.read(SettingsService.forceSkipMarkerFallback),
       );
+      appLogger.d(
+        extras == null
+            ? '_loadPlaybackExtras: no cached extras for ${metadata.id}'
+            : '_loadPlaybackExtras: cache-only ${_describe(extras)}',
+      );
+      return extras;
     } catch (e) {
       appLogger.d('_loadPlaybackExtras: cache-only path failed', error: e);
       return null;
     }
+  }
+
+  /// Marker counts are the difference between "the server has no intro data"
+  /// and "auto-skip never fired", which is otherwise indistinguishable in a
+  /// user-supplied log.
+  static String _describe(PlaybackExtras extras) {
+    final markerTypes = extras.markers.map((m) => m.type).join(',');
+    return '${extras.chapters.length} chapters, ${extras.markers.length} markers'
+        '${markerTypes.isEmpty ? '' : ' ($markerTypes)'}';
   }
 
   Future<String?> _resolveCacheServerId() async {

@@ -85,9 +85,10 @@ class AppDatabase extends _$AppDatabase {
   static final Object _durabilityZoneKey = Object();
   static final SerialFutureQueue _tvosRecoveryQueue = SerialFutureQueue();
 
-  /// Resolves and opens the production database, eagerly completing Drift
-  /// setup and migrations on non-tvOS before returning. tvOS recovery retains
-  /// ownership of database access ordering.
+  /// Resolves and opens the production database, removing orphaned WAL/SHM
+  /// sidecars when the main database is absent (#1732), then eagerly completing
+  /// Drift setup and migrations on non-tvOS. tvOS recovery retains ownership
+  /// of database access ordering.
   static Future<AppDatabaseBootstrap> open({
     bool isTvos = const bool.fromEnvironment('TVOS_BUILD'),
     File? databaseFile,
@@ -105,7 +106,7 @@ class AppDatabase extends _$AppDatabase {
     }
 
     final databaseExisted = await file.exists();
-    if (isTvos && !databaseExisted) {
+    if (!databaseExisted) {
       await _removeOrphanedDatabaseSidecars(file);
     }
 
@@ -234,7 +235,7 @@ class AppDatabase extends _$AppDatabase {
   static bool _containsPlaintextConnectionCredential(String kind, Map<String, dynamic> config) {
     bool isPlaintext(Object? value) => value is String && value.isNotEmpty && !CredentialVault.isProtected(value);
 
-    if (kind == 'jellyfin') return isPlaintext(config['accessToken']);
+    if (kind == 'jellyfin' || kind == 'emby') return isPlaintext(config['accessToken']);
     if (kind != 'plex') return false;
     if (isPlaintext(config['accountToken'])) return true;
     final servers = config['servers'];
@@ -379,7 +380,7 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 7) {
           appLogger.i('Adding OfflineWatchProgress table (v7 migration)');
-          await m.createTable(offlineWatchProgress);
+          await _ignoreAlreadyExists('OfflineWatchProgress table', () => m.createTable(offlineWatchProgress));
         }
         if (from < 8) {
           appLogger.i('Adding bgTaskId column to DownloadedMedia (v8 migration)');
@@ -397,7 +398,7 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 10) {
           appLogger.i('Adding SyncRules table (v10 migration)');
-          await m.createTable(syncRules);
+          await _ignoreAlreadyExists('SyncRules table', () => m.createTable(syncRules));
         }
         if (from < 11) {
           appLogger.i('Adding enabled column to SyncRules (v11 migration)');
@@ -427,13 +428,13 @@ class AppDatabase extends _$AppDatabase {
             'Adding Connections, Profiles, ProfileConnections, DownloadOwners + scope/profile columns (v14 migration)',
           );
 
-          await m.createTable(connections);
+          await _ignoreAlreadyExists('Connections table', () => m.createTable(connections));
           await _ignoreAlreadyExists('Index idx_connections_kind', () => m.create(idxConnectionsKind));
 
-          await m.createTable(profiles);
+          await _ignoreAlreadyExists('Profiles table', () => m.createTable(profiles));
           await _ignoreAlreadyExists('Index idx_profiles_kind', () => m.create(idxProfilesKind));
 
-          await m.createTable(profileConnections);
+          await _ignoreAlreadyExists('ProfileConnections table', () => m.createTable(profileConnections));
           await _ignoreAlreadyExists(
             'Index idx_profile_connections_connection_id',
             () => m.create(idxProfileConnectionsConnectionId),
@@ -983,6 +984,37 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  /// Drop queued `progress` rows for one item, leaving `watched`/`unwatched`
+  /// rows alone. Returns how many were removed.
+  ///
+  /// The mirror of the purge [insertWatchAction] performs: a terminal watch
+  /// state written straight to the server (the online path, which queues
+  /// nothing) also supersedes any progress still waiting to replay. Without
+  /// it, [getPendingWatchActions] hands back the older progress row — it
+  /// orders by `createdAt` — and replaying it rewrites the resume position the
+  /// mark just cleared, pinning the item to Continue Watching (#1812).
+  ///
+  /// Progress queued *after* a mark is a genuine rewatch and is not affected:
+  /// this only runs at the moment the mark lands.
+  Future<int> deleteQueuedProgressForItem({
+    String? profileId,
+    required ServerId serverId,
+    String? clientScopeId,
+    required String ratingKey,
+  }) {
+    return _runPendingMutation(() async {
+      final globalKey = buildGlobalKey(ServerId(serverId), ratingKey);
+      return (delete(offlineWatchProgress)..where(
+            (t) =>
+                t.globalKey.equals(globalKey) &
+                _nullableTextPredicate(t.profileId, profileId) &
+                _nullableTextPredicate(t.clientScopeId, clientScopeId) &
+                t.actionType.equals(OfflineActionType.progress.id),
+          ))
+          .go();
+    });
+  }
+
   /// Delete a specific watch action after successful sync
   Future<void> deleteWatchAction(int id) {
     return _runPendingMutation(() async {
@@ -1292,10 +1324,17 @@ Future<File> _resolveProductionDatabaseFile() async {
   return File(p.join(dbFolder.path, 'plezy_downloads.db'));
 }
 
+/// Best-effort removal for sidecars left without a main database after an
+/// interrupted write. This runs on every platform but only when the caller has
+/// confirmed the main database is absent (#1732).
 Future<void> _removeOrphanedDatabaseSidecars(File databaseFile) async {
   for (final suffix in const ['-wal', '-shm']) {
     final sidecar = File('${databaseFile.path}$suffix');
-    if (await sidecar.exists()) await sidecar.delete();
+    try {
+      if (await sidecar.exists()) await sidecar.delete();
+    } on FileSystemException catch (error, stackTrace) {
+      appLogger.w('Unable to remove orphaned database sidecar ${sidecar.path}', error: error, stackTrace: stackTrace);
+    }
   }
 }
 

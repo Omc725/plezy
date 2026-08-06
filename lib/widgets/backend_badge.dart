@@ -3,17 +3,16 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../media/media_backend.dart';
 
-/// Tiny SVG badge for a [MediaBackend] (Plex chevron / Jellyfin mark).
-/// Both assets render in `currentColor` so they pick up whatever foreground
+/// Tiny SVG badge for a [MediaBackend] (Plex chevron / Jellyfin or Emby mark).
+/// All assets render in `currentColor` so they pick up whatever foreground
 /// the parent provides — pass [color] to override, otherwise inherits from
 /// [DefaultTextStyle] / `IconTheme`.
 class BackendBadge extends StatelessWidget {
   final MediaBackend backend;
   final double size;
   final Color? color;
-  final bool isEmby;
 
-  const BackendBadge({super.key, required this.backend, this.size = 16, this.color, this.isEmby = false});
+  const BackendBadge({super.key, required this.backend, this.size = 16, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -22,12 +21,11 @@ class BackendBadge extends StatelessWidget {
         DefaultTextStyle.of(context).style.color ??
         IconTheme.of(context).color ??
         Theme.of(context).colorScheme.onSurface;
-    final asset = isEmby
-        ? 'assets/emby_icon.svg'
-        : switch (backend) {
-            MediaBackend.plex => 'assets/plex_chevron.svg',
-            MediaBackend.jellyfin => 'assets/jellyfin_icon.svg',
-          };
+    final asset = switch (backend) {
+      MediaBackend.plex => 'assets/plex_chevron.svg',
+      MediaBackend.jellyfin => 'assets/jellyfin_icon.svg',
+      MediaBackend.emby => 'assets/emby_icon.svg',
+    };
     return SvgPicture.asset(
       asset,
       width: size,

@@ -69,6 +69,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$serverSelection$en serverSelection = Translations$serverSelection$en.internal(_root);
 	late final Translations$hubDetail$en hubDetail = Translations$hubDetail$en.internal(_root);
 	late final Translations$logs$en logs = Translations$logs$en.internal(_root);
+	late final Translations$startup$en startup = Translations$startup$en.internal(_root);
 	late final Translations$licenses$en licenses = Translations$licenses$en.internal(_root);
 	late final Translations$navigation$en navigation = Translations$navigation$en.internal(_root);
 	late final Translations$explore$en explore = Translations$explore$en.internal(_root);
@@ -136,8 +137,8 @@ class Translations$auth$en {
 	/// en: 'or'
 	String get or => 'or';
 
-	/// en: 'Connect to Jellyfin'
-	String get connectToJellyfin => 'Connect to Jellyfin';
+	/// en: 'Connect to ${product}'
+	String connectToMediaBrowser({required Object product}) => 'Connect to ${product}';
 
 	/// en: 'Use Quick Connect'
 	String get useQuickConnect => 'Use Quick Connect';
@@ -300,6 +301,8 @@ class Translations$common$en {
 
 	/// en: 'Press back again to exit'
 	String get pressBackAgainToExit => 'Press back again to exit';
+
+	late final Translations$common$ratingSource$en ratingSource = Translations$common$ratingSource$en.internal(_root);
 }
 
 // Path: screens
@@ -435,6 +438,9 @@ class Translations$settings$en {
 
 	/// en: 'Library Density'
 	String get libraryDensity => 'Library Density';
+
+	/// en: 'Display Scale'
+	String get displayScale => 'Display Scale';
 
 	/// en: 'Compact'
 	String get compact => 'Compact';
@@ -922,8 +928,8 @@ class Translations$settings$en {
 	/// en: 'Tunneled Playback'
 	String get tunneledPlayback => 'Tunneled Playback';
 
-	/// en: 'Use video tunneling. Disable if HDR playback shows black video.'
-	String get tunneledPlaybackDescription => 'Use video tunneling. Disable if HDR playback shows black video.';
+	/// en: 'Use video tunneling. Disable if HDR playback shows black video or motion stutters.'
+	String get tunneledPlaybackDescription => 'Use video tunneling. Disable if HDR playback shows black video or motion stutters.';
 
 	/// en: 'Audio Passthrough'
 	String get audioPassthrough => 'Audio Passthrough';
@@ -1581,14 +1587,74 @@ class Translations$mediaMenu$en {
 	/// en: 'File Info'
 	String get fileInfo => 'File Info';
 
-	/// en: 'Delete from server'
-	String get deleteFromServer => 'Delete from server';
+	/// en: 'Delete episode from server'
+	String get deleteEpisodeFromServer => 'Delete episode from server';
 
-	/// en: 'Delete this media and its files from your server?'
-	String get confirmDelete => 'Delete this media and its files from your server?';
+	/// en: 'Delete season from server'
+	String get deleteSeasonFromServer => 'Delete season from server';
+
+	/// en: 'Delete show from server'
+	String get deleteShowFromServer => 'Delete show from server';
+
+	/// en: 'Delete movie from server'
+	String get deleteMovieFromServer => 'Delete movie from server';
+
+	/// en: 'Delete this episode?'
+	String get deleteEpisodeTitle => 'Delete this episode?';
+
+	/// en: 'Delete this season?'
+	String get deleteSeasonTitle => 'Delete this season?';
+
+	/// en: 'Delete this show?'
+	String get deleteShowTitle => 'Delete this show?';
+
+	/// en: 'Delete this movie?'
+	String get deleteMovieTitle => 'Delete this movie?';
+
+	/// en: 'Delete episode'
+	String get deleteEpisodeConfirm => 'Delete episode';
+
+	/// en: 'Delete season'
+	String get deleteSeasonConfirm => 'Delete season';
+
+	/// en: 'Delete show'
+	String get deleteShowConfirm => 'Delete show';
+
+	/// en: 'Delete movie'
+	String get deleteMovieConfirm => 'Delete movie';
+
+	/// en: 'Delete anyway'
+	String get deleteAnyway => 'Delete anyway';
+
+	/// en: 'Permanently delete ${title} from your server?'
+	String confirmDeleteTarget({required Object title}) => 'Permanently delete ${title} from your server?';
 
 	/// en: 'This includes all episodes and their files.'
 	String get deleteMultipleWarning => 'This includes all episodes and their files.';
+
+	/// en: '(one) {This deletes all ${n} episode in it, and its file.} (other) {This deletes all ${n} episodes in it, and their files.}'
+	String deleteEpisodeCountWarning({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: 'This deletes all ${n} episode in it, and its file.',
+		other: 'This deletes all ${n} episodes in it, and their files.',
+	);
+
+	/// en: '(one) {This item is stored as ${n} file, which will be deleted.} (other) {This item is stored across ${n} files, and all of them will be deleted.}'
+	String deleteMultiPartWarning({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: 'This item is stored as ${n} file, which will be deleted.',
+		other: 'This item is stored across ${n} files, and all of them will be deleted.',
+	);
+
+	/// en: '(one) {${n} other episode is stored in the same file and will be deleted too:} (other) {${n} other episodes are stored in the same file and will be deleted too:}'
+	String deleteSharedFileHeading({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n,
+		one: '${n} other episode is stored in the same file and will be deleted too:',
+		other: '${n} other episodes are stored in the same file and will be deleted too:',
+	);
+
+	/// en: 'Plezy could not check which files this will remove, so it may delete more than the item named above. Cancel and try again, or delete anyway.'
+	String get deleteScopeUnverifiedProbeFailed => 'Plezy could not check which files this will remove, so it may delete more than the item named above. Cancel and try again, or delete anyway.';
+
+	/// en: 'Your server did not provide file details for this item, so Plezy cannot check which files this will remove. It may delete more than the item named above.'
+	String get deleteScopeUnverifiedNoFileInfo => 'Your server did not provide file details for this item, so Plezy cannot check which files this will remove. It may delete more than the item named above.';
 
 	/// en: 'Media item deleted successfully'
 	String get mediaDeletedSuccessfully => 'Media item deleted successfully';
@@ -1835,6 +1901,9 @@ class Translations$videoControls$en {
 
 	/// en: 'Playing'
 	String get playbackResumed => 'Playing';
+
+	/// en: 'Loading video'
+	String get loadingVideo => 'Loading video';
 
 	/// en: 'Show playback controls'
 	String get showPlaybackControls => 'Show playback controls';
@@ -2135,6 +2204,12 @@ class Translations$messages$en {
 	/// en: 'Server error (HTTP 500). A bandwidth/transcoding limit likely rejected this session. Ask the owner to adjust it.'
 	String get serverLimitBody => 'Server error (HTTP 500). A bandwidth/transcoding limit likely rejected this session. Ask the owner to adjust it.';
 
+	/// en: 'File unavailable'
+	String get mediaUnreadableTitle => 'File unavailable';
+
+	/// en: 'The server found this item but could not read its file (HTTP 404). The file was probably moved, deleted, or its storage is offline. Ask the server owner to check the file and rescan the library.'
+	String get mediaUnreadableBody => 'The server found this item but could not read its file (HTTP 404). The file was probably moved, deleted, or its storage is offline. Ask the server owner to check the file and rescan the library.';
+
 	/// en: 'Logs uploaded'
 	String get logsUploaded => 'Logs uploaded';
 
@@ -2396,6 +2471,12 @@ class Translations$profiles$en {
 	/// en: 'Plex Home account'
 	String get plexHomeAccount => 'Plex Home account';
 
+	/// en: 'Plex account: ${account}'
+	String plexAccountChip({required Object account}) => 'Plex account: ${account}';
+
+	/// en: '${user} via ${account}'
+	String plexAccountUserChip({required Object user, required Object account}) => '${user} via ${account}';
+
 	/// en: 'Default'
 	String get connectionDefault => 'Default';
 
@@ -2420,8 +2501,8 @@ class Translations$profiles$en {
 	/// en: 'Nothing to borrow yet.'
 	String get borrowEmpty => 'Nothing to borrow yet.';
 
-	/// en: 'Connect Plex or Jellyfin to another profile first.'
-	String get borrowEmptySubtitle => 'Connect Plex or Jellyfin to another profile first.';
+	/// en: 'Connect Plex, Jellyfin, or Emby to another profile first.'
+	String get borrowEmptySubtitle => 'Connect Plex, Jellyfin, or Emby to another profile first.';
 
 	/// en: 'Available connections could not be loaded. Try again.'
 	String get borrowLoadFailed => 'Available connections could not be loaded. Try again.';
@@ -2483,11 +2564,11 @@ class Translations$connections$en {
 	/// en: 'Add connection'
 	String get addConnection => 'Add connection';
 
-	/// en: 'Sign in with Plex or connect a Jellyfin server'
-	String get addConnectionSubtitleNoProfile => 'Sign in with Plex or connect a Jellyfin server';
+	/// en: 'Sign in with Plex or connect a Jellyfin or Emby server'
+	String get addConnectionSubtitleNoProfile => 'Sign in with Plex or connect a Jellyfin or Emby server';
 
-	/// en: 'Add to ${displayName}: Plex, Jellyfin, or another profile connection'
-	String addConnectionSubtitleScoped({required Object displayName}) => 'Add to ${displayName}: Plex, Jellyfin, or another profile connection';
+	/// en: 'Add to ${displayName}: Plex, Jellyfin, Emby, or another profile connection'
+	String addConnectionSubtitleScoped({required Object displayName}) => 'Add to ${displayName}: Plex, Jellyfin, Emby, or another profile connection';
 
 	/// en: 'Session expired for ${name}'
 	String sessionExpiredOne({required Object name}) => 'Session expired for ${name}';
@@ -2498,11 +2579,11 @@ class Translations$connections$en {
 	/// en: 'Sign in again'
 	String get signInAgain => 'Sign in again';
 
-	/// en: 'Edit Jellyfin connection'
-	String get editJellyfinTitle => 'Edit Jellyfin connection';
+	/// en: 'Edit ${product} connection'
+	String editMediaBrowserTitle({required Object product}) => 'Edit ${product} connection';
 
 	/// en: 'Add or remove URLs for ${serverName}. Plezy will use the reachable URL with the lowest latency.'
-	String editJellyfinIntro({required Object serverName}) => 'Add or remove URLs for ${serverName}. Plezy will use the reachable URL with the lowest latency.';
+	String editMediaBrowserIntro({required Object serverName}) => 'Add or remove URLs for ${serverName}. Plezy will use the reachable URL with the lowest latency.';
 }
 
 // Path: discover
@@ -2785,8 +2866,8 @@ class Translations$about$en {
 	/// en: 'Version ${version}'
 	String versionLabel({required Object version}) => 'Version ${version}';
 
-	/// en: 'A beautiful Plex and Jellyfin client for Flutter'
-	String get appDescription => 'A beautiful Plex and Jellyfin client for Flutter';
+	/// en: 'A beautiful Plex, Jellyfin, and Emby client for Flutter'
+	String get appDescription => 'A beautiful Plex, Jellyfin, and Emby client for Flutter';
 
 	/// en: 'View licenses of third-party libraries'
 	String get viewLicensesDescription => 'View licenses of third-party libraries';
@@ -2847,6 +2928,105 @@ class Translations$logs$en {
 
 	/// en: 'Upload Logs'
 	String get uploadLogs => 'Upload Logs';
+}
+
+// Path: startup
+class Translations$startup$en {
+	Translations$startup$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Plezy could not start'
+	String get failedTitle => 'Plezy could not start';
+
+	/// en: 'Something went wrong during startup. The details below identify what failed.'
+	String get failedBody => 'Something went wrong during startup. The details below identify what failed.';
+
+	/// en: 'Plezy's saved settings file is damaged and has to be rebuilt before Plezy can start. Retrying will not help — choose Repair storage.'
+	String get failedBodyRepairable => 'Plezy\'s saved settings file is damaged and has to be rebuilt before Plezy can start. Retrying will not help — choose Repair storage.';
+
+	/// en: 'Step'
+	String get phaseLabel => 'Step';
+
+	/// en: 'Show details'
+	String get showDetails => 'Show details';
+
+	/// en: 'Hide details'
+	String get hideDetails => 'Hide details';
+
+	/// en: 'Copy details'
+	String get copyDetails => 'Copy details';
+
+	/// en: 'Details copied to clipboard'
+	String get detailsCopied => 'Details copied to clipboard';
+
+	/// en: 'Upload details'
+	String get uploadDetails => 'Upload details';
+
+	/// en: 'Repair storage'
+	String get repairStorage => 'Repair storage';
+
+	/// en: 'Repair stored data?'
+	String get repairTitle => 'Repair stored data?';
+
+	/// en: 'Plezy's settings file is damaged and cannot be read. Repairing resets every setting to its default.'
+	String get repairBodyCommon => 'Plezy\'s settings file is damaged and cannot be read. Repairing resets every setting to its default.';
+
+	/// en: 'One saved sign-in is damaged and cannot be read. Repairing removes just that one; your other settings are left alone.'
+	String get repairBodyOneCredential => 'One saved sign-in is damaged and cannot be read. Repairing removes just that one; your other settings are left alone.';
+
+	/// en: 'Your servers and profiles should stay signed in.'
+	String get repairBodySignInsKept => 'Your servers and profiles should stay signed in.';
+
+	/// en: 'The key protecting your saved sign-ins cannot be recovered from this file, so you will have to sign in to every server and profile again. Nothing on your media server is affected.'
+	String get repairBodySignInsLost => 'The key protecting your saved sign-ins cannot be recovered from this file, so you will have to sign in to every server and profile again. Nothing on your media server is affected.';
+
+	/// en: 'Trackers (MAL, AniList, Simkl, Trakt) and Seerr are stored separately and may or may not survive. Plezy will tell you exactly what it kept.'
+	String get repairBodySessionsUncertain => 'Trackers (MAL, AniList, Simkl, Trakt) and Seerr are stored separately and may or may not survive. Plezy will tell you exactly what it kept.';
+
+	/// en: 'Repair'
+	String get repairConfirm => 'Repair';
+
+	/// en: 'Storage repaired'
+	String get repairSucceeded => 'Storage repaired';
+
+	/// en: 'Storage repaired — restart required'
+	String get repairNeedsRestart => 'Storage repaired — restart required';
+
+	/// en: 'Your data was repaired, but Plezy has to start fresh before it can use it. Close Plezy and open it again.'
+	String get restartRequiredBody => 'Your data was repaired, but Plezy has to start fresh before it can use it. Close Plezy and open it again.';
+
+	/// en: 'Quit Plezy'
+	String get quitPlezy => 'Quit Plezy';
+
+	/// en: 'Repair failed'
+	String get repairFailed => 'Repair failed';
+
+	/// en: 'Your servers and profiles are still signed in.'
+	String get repairKeptSignIns => 'Your servers and profiles are still signed in.';
+
+	/// en: 'The key protecting your saved sign-ins could not be recovered. You will have to sign in to every server and profile again.'
+	String get repairLostSignIns => 'The key protecting your saved sign-ins could not be recovered. You will have to sign in to every server and profile again.';
+
+	/// en: 'At least one tracker or Seerr connection was lost and has to be reconnected.'
+	String get repairLostSessions => 'At least one tracker or Seerr connection was lost and has to be reconnected.';
+
+	/// en: 'A copy of the damaged file was kept'
+	String get backupTitle => 'A copy of the damaged file was kept';
+
+	/// en: 'It contains your sign-in credentials. Do not upload or share it.'
+	String get backupWarning => 'It contains your sign-in credentials. Do not upload or share it.';
+
+	/// en: 'Delete copy'
+	String get deleteBackup => 'Delete copy';
+
+	/// en: 'Copy deleted.'
+	String get backupDeleted => 'Copy deleted.';
+
+	/// en: 'Plezy failed to start last time'
+	String get previousFailureTitle => 'Plezy failed to start last time';
 }
 
 // Path: licenses
@@ -2962,7 +3142,7 @@ class Translations$explore$en {
 	late final Translations$explore$format$en format = Translations$explore$format$en.internal(_root);
 	late final Translations$explore$sourceMaterial$en sourceMaterial = Translations$explore$sourceMaterial$en.internal(_root);
 	late final Translations$explore$creditRole$en creditRole = Translations$explore$creditRole$en.internal(_root);
-	late final Translations$explore$ratingSource$en ratingSource = Translations$explore$ratingSource$en.internal(_root);
+	late final Translations$explore$relation$en relation = Translations$explore$relation$en.internal(_root);
 
 	/// en: 'Airs ${day} at ${time}'
 	String broadcast({required Object day, required Object time}) => 'Airs ${day} at ${time}';
@@ -2977,8 +3157,6 @@ class Translations$explore$en {
 		one: '${n} result',
 		other: '${n} results',
 	);
-
-	late final Translations$explore$relation$en relation = Translations$explore$relation$en.internal(_root);
 }
 
 // Path: liveTv
@@ -3977,9 +4155,6 @@ class Translations$videoSettings$en {
 	/// en: 'Performance Overlay'
 	String get performanceOverlay => 'Performance Overlay';
 
-	/// en: 'Audio Passthrough'
-	String get audioPassthrough => 'Audio Passthrough';
-
 	/// en: 'Dolby Atmos'
 	String get audioOutputDolbyAtmos => 'Dolby Atmos';
 
@@ -4657,8 +4832,8 @@ class Translations$addServer$en {
 
 	// Translations
 
-	/// en: 'Add Jellyfin server'
-	String get addJellyfinTitle => 'Add Jellyfin server';
+	/// en: 'Add ${product} server'
+	String addMediaBrowserTitle({required Object product}) => 'Add ${product} server';
 
 	/// en: 'Server URLs'
 	String get serverUrls => 'Server URLs';
@@ -4669,11 +4844,11 @@ class Translations$addServer$en {
 	/// en: 'Find server'
 	String get findServer => 'Find server';
 
-	/// en: 'Looking for local Jellyfin servers...'
-	String get searchingLocalServers => 'Looking for local Jellyfin servers...';
+	/// en: 'Looking for local ${product} servers...'
+	String searchingLocalMediaBrowserServers({required Object product}) => 'Looking for local ${product} servers...';
 
-	/// en: 'Local Jellyfin servers'
-	String get localServers => 'Local Jellyfin servers';
+	/// en: 'Local ${product} servers'
+	String localMediaBrowserServers({required Object product}) => 'Local ${product} servers';
 
 	/// en: 'Username'
 	String get username => 'Username';
@@ -4708,8 +4883,8 @@ class Translations$addServer$en {
 	/// en: 'Failed to register account: ${error}'
 	String failedToRegisterAccount({required Object error}) => 'Failed to register account: ${error}';
 
-	/// en: 'Enter your Jellyfin server URL'
-	String get enterJellyfinUrlError => 'Enter your Jellyfin server URL';
+	/// en: 'Enter your ${product} server URL'
+	String enterMediaBrowserUrlError({required Object product}) => 'Enter your ${product} server URL';
 
 	/// en: 'Add connection'
 	String get addConnectionTitle => 'Add connection';
@@ -4726,20 +4901,62 @@ class Translations$addServer$en {
 	/// en: 'Authorize a Plex account. Home users become profiles.'
 	String get signInWithPlexCardSubtitleScoped => 'Authorize a Plex account. Home users become profiles.';
 
-	/// en: 'Connect to Jellyfin'
-	String get connectToJellyfinCard => 'Connect to Jellyfin';
+	/// en: 'Connect to ${product}'
+	String connectToMediaBrowserCard({required Object product}) => 'Connect to ${product}';
 
 	/// en: 'Enter your server URL, username, and password.'
-	String get connectToJellyfinCardSubtitle => 'Enter your server URL, username, and password.';
+	String get connectToMediaBrowserCardSubtitle => 'Enter your server URL, username, and password.';
 
-	/// en: 'Sign in to a Jellyfin server. Binds to ${name}.'
-	String connectToJellyfinCardSubtitleScoped({required Object name}) => 'Sign in to a Jellyfin server. Binds to ${name}.';
+	/// en: 'Sign in to your ${product} server. Binds to ${name}.'
+	String connectToMediaBrowserCardSubtitleScoped({required Object product, required Object name}) => 'Sign in to your ${product} server. Binds to ${name}.';
 
 	/// en: 'Borrow from another profile'
 	String get borrowFromAnotherProfile => 'Borrow from another profile';
 
 	/// en: 'Reuse another profile's connection. PIN-protected profiles require a PIN.'
 	String get borrowFromAnotherProfileSubtitle => 'Reuse another profile\'s connection. PIN-protected profiles require a PIN.';
+}
+
+// Path: common.ratingSource
+class Translations$common$ratingSource$en {
+	Translations$common$ratingSource$en.internal(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// en: 'Critics'
+	String get critic => 'Critics';
+
+	/// en: 'Audience'
+	String get audience => 'Audience';
+
+	/// en: 'IMDb'
+	String get imdb => 'IMDb';
+
+	/// en: 'TMDB'
+	String get tmdb => 'TMDB';
+
+	/// en: 'Rotten Tomatoes'
+	String get rottenTomatoes => 'Rotten Tomatoes';
+
+	/// en: 'Simkl'
+	String get simkl => 'Simkl';
+
+	/// en: 'MyAnimeList'
+	String get mal => 'MyAnimeList';
+
+	/// en: 'AniList'
+	String get anilist => 'AniList';
+
+	/// en: 'Trakt'
+	String get trakt => 'Trakt';
+
+	/// en: 'Rotten Tomatoes critics'
+	String get rottenTomatoesCritic => 'Rotten Tomatoes critics';
+
+	/// en: 'Rotten Tomatoes audience'
+	String get rottenTomatoesAudience => 'Rotten Tomatoes audience';
 }
 
 // Path: hotkeys.actions
@@ -5336,46 +5553,40 @@ class Translations$explore$creditRole$en {
 	String get composer => 'Composer';
 }
 
-// Path: explore.ratingSource
-class Translations$explore$ratingSource$en {
-	Translations$explore$ratingSource$en.internal(this._root);
+// Path: explore.relation
+class Translations$explore$relation$en {
+	Translations$explore$relation$en.internal(this._root);
 
 	final Translations _root; // ignore: unused_field
 
 	// Translations
 
-	/// en: 'Critics'
-	String get critic => 'Critics';
+	/// en: 'Prequel'
+	String get prequel => 'Prequel';
 
-	/// en: 'Audience'
-	String get audience => 'Audience';
+	/// en: 'Sequel'
+	String get sequel => 'Sequel';
 
-	/// en: 'IMDb'
-	String get imdb => 'IMDb';
+	/// en: 'Side story'
+	String get sideStory => 'Side story';
 
-	/// en: 'TMDB'
-	String get tmdb => 'TMDB';
+	/// en: 'Spin-off'
+	String get spinOff => 'Spin-off';
 
-	/// en: 'Rotten Tomatoes'
-	String get rottenTomatoes => 'Rotten Tomatoes';
+	/// en: 'Alternative version'
+	String get alternativeVersion => 'Alternative version';
 
-	/// en: 'Simkl'
-	String get simkl => 'Simkl';
+	/// en: 'Summary'
+	String get summary => 'Summary';
 
-	/// en: 'MyAnimeList'
-	String get mal => 'MyAnimeList';
+	/// en: 'Parent story'
+	String get parentStory => 'Parent story';
 
-	/// en: 'AniList'
-	String get anilist => 'AniList';
+	/// en: 'Adaptation'
+	String get adaptation => 'Adaptation';
 
-	/// en: 'Trakt'
-	String get trakt => 'Trakt';
-
-	/// en: 'Rotten Tomatoes critics'
-	String get rottenTomatoesCritic => 'Rotten Tomatoes critics';
-
-	/// en: 'Rotten Tomatoes audience'
-	String get rottenTomatoesAudience => 'Rotten Tomatoes audience';
+	/// en: 'Related'
+	String get other => 'Related';
 }
 
 // Path: explore.detail
@@ -5475,42 +5686,6 @@ class Translations$explore$detail$en {
 
 	/// en: 'Background'
 	String get background => 'Background';
-}
-
-// Path: explore.relation
-class Translations$explore$relation$en {
-	Translations$explore$relation$en.internal(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// en: 'Prequel'
-	String get prequel => 'Prequel';
-
-	/// en: 'Sequel'
-	String get sequel => 'Sequel';
-
-	/// en: 'Side story'
-	String get sideStory => 'Side story';
-
-	/// en: 'Spin-off'
-	String get spinOff => 'Spin-off';
-
-	/// en: 'Alternative version'
-	String get alternativeVersion => 'Alternative version';
-
-	/// en: 'Summary'
-	String get summary => 'Summary';
-
-	/// en: 'Parent story'
-	String get parentStory => 'Parent story';
-
-	/// en: 'Adaptation'
-	String get adaptation => 'Adaptation';
-
-	/// en: 'Related'
-	String get other => 'Related';
 }
 
 // Path: downloads.backgroundWarning
@@ -5838,6 +6013,9 @@ class Translations$services$names$en {
 
 	/// en: 'Seerr'
 	String get seerr => 'Seerr';
+
+	/// en: 'MDBList'
+	String get mdblist => 'MDBList';
 }
 
 // Path: services.deviceCode
@@ -5953,7 +6131,7 @@ extension on Translations {
 			'auth.waitingForAuth' => 'Waiting for authentication...\nSign in from your browser.',
 			'auth.useBrowser' => 'Use browser',
 			'auth.or' => 'or',
-			'auth.connectToJellyfin' => 'Connect to Jellyfin',
+			'auth.connectToMediaBrowser' => ({required Object product}) => 'Connect to ${product}',
 			'auth.useQuickConnect' => 'Use Quick Connect',
 			'auth.quickConnectInstructions' => 'Open Quick Connect in Jellyfin and enter this code.',
 			'auth.quickConnectWaiting' => 'Waiting for approval…',
@@ -6005,6 +6183,17 @@ extension on Translations {
 			'common.fullscreen' => 'Fullscreen',
 			'common.exitFullscreen' => 'Exit fullscreen',
 			'common.pressBackAgainToExit' => 'Press back again to exit',
+			'common.ratingSource.critic' => 'Critics',
+			'common.ratingSource.audience' => 'Audience',
+			'common.ratingSource.imdb' => 'IMDb',
+			'common.ratingSource.tmdb' => 'TMDB',
+			'common.ratingSource.rottenTomatoes' => 'Rotten Tomatoes',
+			'common.ratingSource.simkl' => 'Simkl',
+			'common.ratingSource.mal' => 'MyAnimeList',
+			'common.ratingSource.anilist' => 'AniList',
+			'common.ratingSource.trakt' => 'Trakt',
+			'common.ratingSource.rottenTomatoesCritic' => 'Rotten Tomatoes critics',
+			'common.ratingSource.rottenTomatoesAudience' => 'Rotten Tomatoes audience',
 			'screens.licenses' => 'Licenses',
 			'screens.switchProfile' => 'Switch Profile',
 			'screens.subtitleStyling' => 'Subtitle Styling',
@@ -6041,6 +6230,7 @@ extension on Translations {
 			'settings.darkTheme' => 'Dark',
 			'settings.oledTheme' => 'OLED',
 			'settings.libraryDensity' => 'Library Density',
+			'settings.displayScale' => 'Display Scale',
 			'settings.compact' => 'Compact',
 			'settings.comfortable' => 'Comfortable',
 			'settings.tvCornerSpotlightBackdrop' => 'Corner Spotlight Backdrop',
@@ -6203,7 +6393,7 @@ extension on Translations {
 			'settings.matchDynamicRangeDescription' => 'Switch HDR on for HDR content, then back to SDR',
 			'settings.displaySwitchDelay' => 'Display Switch Delay',
 			'settings.tunneledPlayback' => 'Tunneled Playback',
-			'settings.tunneledPlaybackDescription' => 'Use video tunneling. Disable if HDR playback shows black video.',
+			'settings.tunneledPlaybackDescription' => 'Use video tunneling. Disable if HDR playback shows black video or motion stutters.',
 			'settings.audioPassthrough' => 'Audio Passthrough',
 			'settings.audioPassthroughDescription' => 'Send Dolby/DTS audio to your receiver or TV without re-encoding, preserving surround sound. Turn off if you have no sound.',
 			'settings.audioPassthroughDescriptionAppleTv' => 'Use Apple\'s native Dolby decoder for Dolby Digital Plus, including Atmos. DTS and TrueHD still play as multichannel PCM. Turn off if you have no sound.',
@@ -6432,9 +6622,28 @@ extension on Translations {
 			'mediaMenu.shufflePlay' => 'Shuffle Play',
 			'mediaMenu.shuffleNotAvailableOffline' => 'Shuffle not available offline',
 			'mediaMenu.fileInfo' => 'File Info',
-			'mediaMenu.deleteFromServer' => 'Delete from server',
-			'mediaMenu.confirmDelete' => 'Delete this media and its files from your server?',
+			'mediaMenu.deleteEpisodeFromServer' => 'Delete episode from server',
+			'mediaMenu.deleteSeasonFromServer' => 'Delete season from server',
+			'mediaMenu.deleteShowFromServer' => 'Delete show from server',
+			'mediaMenu.deleteMovieFromServer' => 'Delete movie from server',
+			'mediaMenu.deleteEpisodeTitle' => 'Delete this episode?',
+			'mediaMenu.deleteSeasonTitle' => 'Delete this season?',
+			'mediaMenu.deleteShowTitle' => 'Delete this show?',
+			'mediaMenu.deleteMovieTitle' => 'Delete this movie?',
+			'mediaMenu.deleteEpisodeConfirm' => 'Delete episode',
+			'mediaMenu.deleteSeasonConfirm' => 'Delete season',
+			'mediaMenu.deleteShowConfirm' => 'Delete show',
+			'mediaMenu.deleteMovieConfirm' => 'Delete movie',
+			'mediaMenu.deleteAnyway' => 'Delete anyway',
+			'mediaMenu.confirmDeleteTarget' => ({required Object title}) => 'Permanently delete ${title} from your server?',
 			'mediaMenu.deleteMultipleWarning' => 'This includes all episodes and their files.',
+			_ => null,
+		} ?? switch (path) {
+			'mediaMenu.deleteEpisodeCountWarning' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'This deletes all ${n} episode in it, and its file.', other: 'This deletes all ${n} episodes in it, and their files.', ), 
+			'mediaMenu.deleteMultiPartWarning' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: 'This item is stored as ${n} file, which will be deleted.', other: 'This item is stored across ${n} files, and all of them will be deleted.', ), 
+			'mediaMenu.deleteSharedFileHeading' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} other episode is stored in the same file and will be deleted too:', other: '${n} other episodes are stored in the same file and will be deleted too:', ), 
+			'mediaMenu.deleteScopeUnverifiedProbeFailed' => 'Plezy could not check which files this will remove, so it may delete more than the item named above. Cancel and try again, or delete anyway.',
+			'mediaMenu.deleteScopeUnverifiedNoFileInfo' => 'Your server did not provide file details for this item, so Plezy cannot check which files this will remove. It may delete more than the item named above.',
 			'mediaMenu.mediaDeletedSuccessfully' => 'Media item deleted successfully',
 			'mediaMenu.mediaFailedToDelete' => 'Failed to delete media item',
 			'mediaMenu.rate' => 'Rate',
@@ -6504,6 +6713,7 @@ extension on Translations {
 			'videoControls.pauseButton' => 'Pause',
 			'videoControls.playbackPaused' => 'Paused',
 			'videoControls.playbackResumed' => 'Playing',
+			'videoControls.loadingVideo' => 'Loading video',
 			'videoControls.showPlaybackControls' => 'Show playback controls',
 			'videoControls.hidePlaybackControls' => 'Hide playback controls',
 			'videoControls.seekBackwardButton' => ({required Object seconds}) => 'Seek backward ${seconds} seconds',
@@ -6606,6 +6816,8 @@ extension on Translations {
 			'messages.switchingToCompatiblePlayer' => 'Switching to compatible player...',
 			'messages.serverLimitTitle' => 'Playback failed',
 			'messages.serverLimitBody' => 'Server error (HTTP 500). A bandwidth/transcoding limit likely rejected this session. Ask the owner to adjust it.',
+			'messages.mediaUnreadableTitle' => 'File unavailable',
+			'messages.mediaUnreadableBody' => 'The server found this item but could not read its file (HTTP 404). The file was probably moved, deleted, or its storage is offline. Ask the server owner to check the file and rescan the library.',
 			'messages.logsUploaded' => 'Logs uploaded',
 			'messages.logsUploadFailed' => 'Failed to upload logs',
 			'messages.logId' => 'Log ID',
@@ -6681,6 +6893,8 @@ extension on Translations {
 			'profiles.noConnectionsHint' => 'No connections — add one to use this profile.',
 			'profiles.noConnections' => 'No connections',
 			'profiles.plexHomeAccount' => 'Plex Home account',
+			'profiles.plexAccountChip' => ({required Object account}) => 'Plex account: ${account}',
+			'profiles.plexAccountUserChip' => ({required Object user, required Object account}) => '${user} via ${account}',
 			'profiles.connectionDefault' => 'Default',
 			'profiles.connectionAs' => ({required Object displayName}) => 'as ${displayName}',
 			'profiles.makeDefault' => 'Make default',
@@ -6689,7 +6903,7 @@ extension on Translations {
 			'profiles.borrowAddTo' => ({required Object displayName}) => 'Add to ${displayName}',
 			'profiles.borrowExplain' => 'Borrow another profile\'s connection. PIN-protected profiles require a PIN.',
 			'profiles.borrowEmpty' => 'Nothing to borrow yet.',
-			'profiles.borrowEmptySubtitle' => 'Connect Plex or Jellyfin to another profile first.',
+			'profiles.borrowEmptySubtitle' => 'Connect Plex, Jellyfin, or Emby to another profile first.',
 			'profiles.borrowLoadFailed' => 'Available connections could not be loaded. Try again.',
 			'profiles.borrowFromProfile' => ({required Object displayName}) => 'From ${displayName}',
 			'profiles.borrowConnectionBorrowed' => 'Connection borrowed.',
@@ -6707,13 +6921,13 @@ extension on Translations {
 			'profiles.pinsDontMatch' => 'PINs don\'t match',
 			'connections.sectionTitle' => 'Connections',
 			'connections.addConnection' => 'Add connection',
-			'connections.addConnectionSubtitleNoProfile' => 'Sign in with Plex or connect a Jellyfin server',
-			'connections.addConnectionSubtitleScoped' => ({required Object displayName}) => 'Add to ${displayName}: Plex, Jellyfin, or another profile connection',
+			'connections.addConnectionSubtitleNoProfile' => 'Sign in with Plex or connect a Jellyfin or Emby server',
+			'connections.addConnectionSubtitleScoped' => ({required Object displayName}) => 'Add to ${displayName}: Plex, Jellyfin, Emby, or another profile connection',
 			'connections.sessionExpiredOne' => ({required Object name}) => 'Session expired for ${name}',
 			'connections.sessionExpiredMany' => ({required Object count}) => 'Session expired for ${count} servers',
 			'connections.signInAgain' => 'Sign in again',
-			'connections.editJellyfinTitle' => 'Edit Jellyfin connection',
-			'connections.editJellyfinIntro' => ({required Object serverName}) => 'Add or remove URLs for ${serverName}. Plezy will use the reachable URL with the lowest latency.',
+			'connections.editMediaBrowserTitle' => ({required Object product}) => 'Edit ${product} connection',
+			'connections.editMediaBrowserIntro' => ({required Object serverName}) => 'Add or remove URLs for ${serverName}. Plezy will use the reachable URL with the lowest latency.',
 			'discover.title' => 'Discover',
 			'discover.noContentAvailable' => 'No content available',
 			'discover.addMediaToLibraries' => 'Add some media to your libraries',
@@ -6835,7 +7049,7 @@ extension on Translations {
 			'about.title' => 'About',
 			'about.openSourceLicenses' => 'Open Source Licenses',
 			'about.versionLabel' => ({required Object version}) => 'Version ${version}',
-			'about.appDescription' => 'A beautiful Plex and Jellyfin client for Flutter',
+			'about.appDescription' => 'A beautiful Plex, Jellyfin, and Emby client for Flutter',
 			'about.viewLicensesDescription' => 'View licenses of third-party libraries',
 			'serverSelection.noServersFoundForAccount' => ({required Object username, required Object email}) => 'No servers found for ${username} (${email})',
 			'serverSelection.failedToLoadServers' => ({required Object error}) => 'Failed to load servers: ${error}',
@@ -6847,6 +7061,36 @@ extension on Translations {
 			'logs.clearLogs' => 'Clear Logs',
 			'logs.copyLogs' => 'Copy Logs',
 			'logs.uploadLogs' => 'Upload Logs',
+			'startup.failedTitle' => 'Plezy could not start',
+			'startup.failedBody' => 'Something went wrong during startup. The details below identify what failed.',
+			'startup.failedBodyRepairable' => 'Plezy\'s saved settings file is damaged and has to be rebuilt before Plezy can start. Retrying will not help — choose Repair storage.',
+			'startup.phaseLabel' => 'Step',
+			'startup.showDetails' => 'Show details',
+			'startup.hideDetails' => 'Hide details',
+			'startup.copyDetails' => 'Copy details',
+			'startup.detailsCopied' => 'Details copied to clipboard',
+			'startup.uploadDetails' => 'Upload details',
+			'startup.repairStorage' => 'Repair storage',
+			'startup.repairTitle' => 'Repair stored data?',
+			'startup.repairBodyCommon' => 'Plezy\'s settings file is damaged and cannot be read. Repairing resets every setting to its default.',
+			'startup.repairBodyOneCredential' => 'One saved sign-in is damaged and cannot be read. Repairing removes just that one; your other settings are left alone.',
+			'startup.repairBodySignInsKept' => 'Your servers and profiles should stay signed in.',
+			'startup.repairBodySignInsLost' => 'The key protecting your saved sign-ins cannot be recovered from this file, so you will have to sign in to every server and profile again. Nothing on your media server is affected.',
+			'startup.repairBodySessionsUncertain' => 'Trackers (MAL, AniList, Simkl, Trakt) and Seerr are stored separately and may or may not survive. Plezy will tell you exactly what it kept.',
+			'startup.repairConfirm' => 'Repair',
+			'startup.repairSucceeded' => 'Storage repaired',
+			'startup.repairNeedsRestart' => 'Storage repaired — restart required',
+			'startup.restartRequiredBody' => 'Your data was repaired, but Plezy has to start fresh before it can use it. Close Plezy and open it again.',
+			'startup.quitPlezy' => 'Quit Plezy',
+			'startup.repairFailed' => 'Repair failed',
+			'startup.repairKeptSignIns' => 'Your servers and profiles are still signed in.',
+			'startup.repairLostSignIns' => 'The key protecting your saved sign-ins could not be recovered. You will have to sign in to every server and profile again.',
+			'startup.repairLostSessions' => 'At least one tracker or Seerr connection was lost and has to be reconnected.',
+			'startup.backupTitle' => 'A copy of the damaged file was kept',
+			'startup.backupWarning' => 'It contains your sign-in credentials. Do not upload or share it.',
+			'startup.deleteBackup' => 'Delete copy',
+			'startup.backupDeleted' => 'Copy deleted.',
+			'startup.previousFailureTitle' => 'Plezy failed to start last time',
 			'licenses.relatedPackages' => 'Related Packages',
 			'licenses.license' => 'License',
 			'licenses.licenseNumber' => ({required Object number}) => 'License ${number}',
@@ -6909,6 +7153,8 @@ extension on Translations {
 			'explore.badge.seasonsAvailable' => ({required Object available, required Object total}) => '${available}/${total} seasons',
 			'explore.badge.nextEpisodeIn' => ({required Object episode, required Object duration}) => 'Ep ${episode} in ${duration}',
 			'explore.badge.nextAiringIn' => ({required Object duration}) => 'Next in ${duration}',
+			_ => null,
+		} ?? switch (path) {
 			'explore.badge.episodesShort' => ({required Object n}) => '${n} eps',
 			'explore.badge.minutesPerEpisode' => ({required Object n}) => '${n} min/ep',
 			'explore.badge.adult' => '18+',
@@ -6954,17 +7200,15 @@ extension on Translations {
 			'explore.creditRole.producer' => 'Producer',
 			'explore.creditRole.creator' => 'Creator',
 			'explore.creditRole.composer' => 'Composer',
-			'explore.ratingSource.critic' => 'Critics',
-			'explore.ratingSource.audience' => 'Audience',
-			'explore.ratingSource.imdb' => 'IMDb',
-			'explore.ratingSource.tmdb' => 'TMDB',
-			'explore.ratingSource.rottenTomatoes' => 'Rotten Tomatoes',
-			'explore.ratingSource.simkl' => 'Simkl',
-			'explore.ratingSource.mal' => 'MyAnimeList',
-			'explore.ratingSource.anilist' => 'AniList',
-			'explore.ratingSource.trakt' => 'Trakt',
-			'explore.ratingSource.rottenTomatoesCritic' => 'Rotten Tomatoes critics',
-			'explore.ratingSource.rottenTomatoesAudience' => 'Rotten Tomatoes audience',
+			'explore.relation.prequel' => 'Prequel',
+			'explore.relation.sequel' => 'Sequel',
+			'explore.relation.sideStory' => 'Side story',
+			'explore.relation.spinOff' => 'Spin-off',
+			'explore.relation.alternativeVersion' => 'Alternative version',
+			'explore.relation.summary' => 'Summary',
+			'explore.relation.parentStory' => 'Parent story',
+			'explore.relation.adaptation' => 'Adaptation',
+			'explore.relation.other' => 'Related',
 			'explore.broadcast' => ({required Object day, required Object time}) => 'Airs ${day} at ${time}',
 			'explore.broadcastWithZone' => ({required Object day, required Object time, required Object timezone}) => 'Airs ${day} at ${time} ${timezone}',
 			'explore.detail.originalTitle' => 'Original title',
@@ -6999,15 +7243,6 @@ extension on Translations {
 			'explore.detail.relatedTitles' => 'Related titles',
 			'explore.detail.background' => 'Background',
 			'explore.totalResults' => ({required num n}) => (_root.$meta.cardinalResolver ?? PluralResolvers.cardinal('en'))(n, one: '${n} result', other: '${n} results', ), 
-			'explore.relation.prequel' => 'Prequel',
-			'explore.relation.sequel' => 'Sequel',
-			'explore.relation.sideStory' => 'Side story',
-			'explore.relation.spinOff' => 'Spin-off',
-			'explore.relation.alternativeVersion' => 'Alternative version',
-			'explore.relation.summary' => 'Summary',
-			'explore.relation.parentStory' => 'Parent story',
-			'explore.relation.adaptation' => 'Adaptation',
-			'explore.relation.other' => 'Related',
 			'liveTv.title' => 'Live TV',
 			'liveTv.guide' => 'Guide',
 			'liveTv.noChannels' => 'No channels available',
@@ -7397,7 +7632,6 @@ extension on Translations {
 			'videoSettings.hdr' => 'HDR',
 			'videoSettings.audioOutput' => 'Audio Output',
 			'videoSettings.performanceOverlay' => 'Performance Overlay',
-			'videoSettings.audioPassthrough' => 'Audio Passthrough',
 			'videoSettings.audioOutputDolbyAtmos' => 'Dolby Atmos',
 			'videoSettings.audioOutputDolbyAudio' => 'Dolby Audio',
 			'videoSettings.audioOutputSurround' => 'Surround',
@@ -7435,6 +7669,8 @@ extension on Translations {
 			'performanceOverlay.maxCll' => 'MaxCLL',
 			'performanceOverlay.maxFall' => 'MaxFALL',
 			'performanceOverlay.cacheUsed' => 'Cache Used',
+			_ => null,
+		} ?? switch (path) {
 			'performanceOverlay.cacheLimit' => 'Cache Limit',
 			'performanceOverlay.speed' => 'Speed',
 			'performanceOverlay.player' => 'Player',
@@ -7601,6 +7837,7 @@ extension on Translations {
 			'services.names.anilist' => 'AniList',
 			'services.names.simkl' => 'Simkl',
 			'services.names.seerr' => 'Seerr',
+			'services.names.mdblist' => 'MDBList',
 			'services.deviceCode.title' => ({required Object service}) => 'Activate Plezy on ${service}',
 			'services.deviceCode.body' => ({required Object url}) => 'Visit ${url} and enter this code:',
 			'services.deviceCode.openToActivate' => ({required Object service}) => 'Open ${service} to activate',
@@ -7624,12 +7861,12 @@ extension on Translations {
 			'services.libraryFilter.modeHintWhitelist' => 'Sync only the libraries checked below.',
 			'services.libraryFilter.libraries' => 'Libraries',
 			'services.libraryFilter.noLibraries' => 'No libraries available',
-			'addServer.addJellyfinTitle' => 'Add Jellyfin server',
+			'addServer.addMediaBrowserTitle' => ({required Object product}) => 'Add ${product} server',
 			'addServer.serverUrls' => 'Server URLs',
 			'addServer.serverUrlsHelper' => 'Multiple URLs allowed, separated by commas.',
 			'addServer.findServer' => 'Find server',
-			'addServer.searchingLocalServers' => 'Looking for local Jellyfin servers...',
-			'addServer.localServers' => 'Local Jellyfin servers',
+			'addServer.searchingLocalMediaBrowserServers' => ({required Object product}) => 'Looking for local ${product} servers...',
+			'addServer.localMediaBrowserServers' => ({required Object product}) => 'Local ${product} servers',
 			'addServer.username' => 'Username',
 			'addServer.password' => 'Password',
 			'addServer.signIn' => 'Sign in',
@@ -7641,15 +7878,15 @@ extension on Translations {
 			'addServer.addPlexTitle' => 'Sign in with Plex',
 			'addServer.pinExpired' => 'PIN expired before sign-in. Please try again.',
 			'addServer.failedToRegisterAccount' => ({required Object error}) => 'Failed to register account: ${error}',
-			'addServer.enterJellyfinUrlError' => 'Enter your Jellyfin server URL',
+			'addServer.enterMediaBrowserUrlError' => ({required Object product}) => 'Enter your ${product} server URL',
 			'addServer.addConnectionTitle' => 'Add connection',
 			'addServer.addConnectionTitleScoped' => ({required Object name}) => 'Add to ${name}',
 			'addServer.signInWithPlexCard' => 'Sign in with Plex',
 			'addServer.signInWithPlexCardSubtitle' => 'Authorize this device. Shared servers are added.',
 			'addServer.signInWithPlexCardSubtitleScoped' => 'Authorize a Plex account. Home users become profiles.',
-			'addServer.connectToJellyfinCard' => 'Connect to Jellyfin',
-			'addServer.connectToJellyfinCardSubtitle' => 'Enter your server URL, username, and password.',
-			'addServer.connectToJellyfinCardSubtitleScoped' => ({required Object name}) => 'Sign in to a Jellyfin server. Binds to ${name}.',
+			'addServer.connectToMediaBrowserCard' => ({required Object product}) => 'Connect to ${product}',
+			'addServer.connectToMediaBrowserCardSubtitle' => 'Enter your server URL, username, and password.',
+			'addServer.connectToMediaBrowserCardSubtitleScoped' => ({required Object product, required Object name}) => 'Sign in to your ${product} server. Binds to ${name}.',
 			'addServer.borrowFromAnotherProfile' => 'Borrow from another profile',
 			'addServer.borrowFromAnotherProfileSubtitle' => 'Reuse another profile\'s connection. PIN-protected profiles require a PIN.',
 			_ => null,

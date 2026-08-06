@@ -76,7 +76,7 @@ import '../../focus/input_mode_tracker.dart';
 import 'models/track_controls_state.dart';
 import 'widgets/double_tap_feedback.dart';
 import 'helpers/mobile_edge_adjustment_tracker.dart';
-import 'helpers/two_finger_double_tap_tracker.dart';
+import 'helpers/two_finger_tap_tracker.dart';
 import 'widgets/linux_keep_alive.dart';
 import 'widgets/mobile_edge_adjustment_indicator.dart';
 import 'widgets/mobile_skip_zones.dart';
@@ -221,8 +221,12 @@ enum PlayerNavigationKey { none, physicalEscape, back, home }
 
 enum PlayerBackDisposition { closeContentStrip, exitFullscreenIfActive, hideControls, exitPlayer }
 
-bool shouldPhysicalEscapeExitFullscreen({required bool isMacOS, required bool videoPlayerNavigationEnabled}) {
-  return !isMacOS && !videoPlayerNavigationEnabled;
+bool shouldPhysicalEscapeExitFullscreen({
+  required bool isMacOS,
+  required bool videoPlayerNavigationEnabled,
+  required bool playerEnteredFullscreen,
+}) {
+  return !isMacOS && !videoPlayerNavigationEnabled && playerEnteredFullscreen;
 }
 
 /// Coordinates the player-level stages shared by keyboard, controller, and
@@ -325,7 +329,22 @@ PlayerBackDisposition resolvePlayerBackDisposition({
   return controlsVisible ? PlayerBackDisposition.hideControls : PlayerBackDisposition.exitPlayer;
 }
 
-PlayerNavigationKey classifyPlayerNavigationKey(KeyEvent event, {required bool isAppleTV, bool? hasModifiers}) {
+/// Maps a key event to the player-level navigation stage it should drive.
+///
+/// [textEditingActive] defaults to [isTextEditingFocused]; inject it in tests.
+/// Bare Backspace and Home double as player navigation *and* as caret editing
+/// keys, so a focused text editor takes them back — otherwise typing in a
+/// player sheet (subtitle search) walks the back pipeline out of the player
+/// instead of correcting a character (#1741). Only physical-keyboard presses
+/// are surrendered: a synthesized dpad/gamepad/companion press has no caret,
+/// and [LogicalKeyboardKey.browserHome] is a dedicated navigation key with no
+/// editing role at all.
+PlayerNavigationKey classifyPlayerNavigationKey(
+  KeyEvent event, {
+  required bool isAppleTV,
+  bool? hasModifiers,
+  bool? textEditingActive,
+}) {
   final key = event.logicalKey;
   if (key == LogicalKeyboardKey.escape) {
     return event.isPhysicalKeyboardEvent && !isAppleTV ? PlayerNavigationKey.physicalEscape : PlayerNavigationKey.back;
@@ -338,10 +357,14 @@ PlayerNavigationKey classifyPlayerNavigationKey(KeyEvent event, {required bool i
           HardwareKeyboard.instance.isControlPressed ||
           HardwareKeyboard.instance.isAltPressed ||
           HardwareKeyboard.instance.isMetaPressed);
+  // Resolved lazily: only the two editing keys below pay for the focus lookup.
+  bool textEditorOwnsKey() => event.isPhysicalKeyboardEvent && (textEditingActive ?? isTextEditingFocused());
+
   if (key == LogicalKeyboardKey.backspace && event.isPhysicalKeyboardEvent && !modifiersPressed) {
-    return PlayerNavigationKey.back;
+    return textEditorOwnsKey() ? PlayerNavigationKey.none : PlayerNavigationKey.back;
   }
   if ((key == LogicalKeyboardKey.home || key == LogicalKeyboardKey.browserHome) && !modifiersPressed) {
+    if (key == LogicalKeyboardKey.home && textEditorOwnsKey()) return PlayerNavigationKey.none;
     return PlayerNavigationKey.home;
   }
   return PlayerNavigationKey.none;
@@ -668,7 +691,7 @@ class _PlexVideoControlsState extends State<PlexVideoControls>
   // Deferred lone-tap action for the skip zones, and the pairing window itself:
   // while it is active the tap that started it can still become a double tap.
   Timer? _singleTapTimer;
-  final TwoFingerDoubleTapTracker _twoFingerDoubleTapTracker = TwoFingerDoubleTapTracker();
+  final TwoFingerTapTracker _twoFingerTapTracker = TwoFingerTapTracker();
   final MobileEdgeAdjustmentTracker _edgeAdjustmentTracker = MobileEdgeAdjustmentTracker();
   final DeviceAdjustmentService _deviceAdjustmentService = DeviceAdjustmentService.instance;
   DateTime? _suppressTouchTapUntil;
@@ -832,6 +855,10 @@ class _PlexVideoControlsState extends State<PlexVideoControls>
       _rateSubscription = widget.player.streams.rate.listen(_onRateChanged);
       _loadPlaybackExtras();
       _focusPlayPauseIfKeyboardMode();
+      // A route that opened with no chrome never ran the hide transition that
+      // normally hands focus down here, and this Focus autofocuses too late to
+      // win it: the screen node claimed it during the loading phase.
+      if (!widget.chromeController.controlsVisible) _claimPlayerSurfaceFocus();
       if (PlatformDetector.isMobile(context) && !PlatformDetector.isTV()) {
         _refreshDeviceAdjustmentValues();
       }
@@ -981,6 +1008,25 @@ class _PlexVideoControlsState extends State<PlexVideoControls>
         _isFullscreen = false;
       });
     }
+  }
+
+  /// Re-activating the window drops Flutter's primary focus to the root scope,
+  /// and the enclosing player screen reclaims it onto its own node. Nothing
+  /// hands it back down while the chrome stays visible — the hide transition is
+  /// the only other handoff — so the next arrow key reaches the screen's
+  /// self-heal and jumps focus into the OSD (#1797). Take the surface back
+  /// unless a control below already owns it.
+  @override
+  void onWindowFocus() {
+    // Claim now rather than post-frame: this arrives on a platform callback,
+    // which is not guaranteed to be followed by a frame. The screen's own
+    // reclaim re-tests `hasFocus` when it runs, so once the surface holds the
+    // remote the two no longer compete.
+    if (!mounted || _focusNode.hasFocus) return;
+    // A route pushed above the player still leaves these controls mounted;
+    // re-activating the window must not pull the remote off the top route.
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+    _claimPlayerSurfaceFocus();
   }
 
   @override

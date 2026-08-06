@@ -11,7 +11,7 @@
     "waitingForAuth": "Waiting for authentication...\nSign in from your browser.",
     "useBrowser": "Use browser",
     "or": "or",
-    "connectToJellyfin": "Connect to Jellyfin",
+    "connectToMediaBrowser": "Connect to ${product}",
     "useQuickConnect": "Use Quick Connect",
     "quickConnectInstructions": "Open Quick Connect in Jellyfin and enter this code.",
     "quickConnectWaiting": "Waiting for approval…",
@@ -64,7 +64,20 @@
     "loading": "Loading...",
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit fullscreen",
-    "pressBackAgainToExit": "Press back again to exit"
+    "pressBackAgainToExit": "Press back again to exit",
+    "ratingSource": {
+      "critic": "Critics",
+      "audience": "Audience",
+      "imdb": "IMDb",
+      "tmdb": "TMDB",
+      "rottenTomatoes": "Rotten Tomatoes",
+      "simkl": "Simkl",
+      "mal": "MyAnimeList",
+      "anilist": "AniList",
+      "trakt": "Trakt",
+      "rottenTomatoesCritic": "Rotten Tomatoes critics",
+      "rottenTomatoesAudience": "Rotten Tomatoes audience"
+    }
   },
   "screens": {
     "licenses": "Licenses",
@@ -107,6 +120,7 @@
     "darkTheme": "Dark",
     "oledTheme": "OLED",
     "libraryDensity": "Library Density",
+    "displayScale": "Display Scale",
     "compact": "Compact",
     "comfortable": "Comfortable",
     "tvCornerSpotlightBackdrop": "Corner Spotlight Backdrop",
@@ -269,7 +283,7 @@
     "matchDynamicRangeDescription": "Switch HDR on for HDR content, then back to SDR",
     "displaySwitchDelay": "Display Switch Delay",
     "tunneledPlayback": "Tunneled Playback",
-    "tunneledPlaybackDescription": "Use video tunneling. Disable if HDR playback shows black video.",
+    "tunneledPlaybackDescription": "Use video tunneling. Disable if HDR playback shows black video or motion stutters.",
     "audioPassthrough": "Audio Passthrough",
     "audioPassthroughDescription": "Send Dolby/DTS audio to your receiver or TV without re-encoding, preserving surround sound. Turn off if you have no sound.",
     "audioPassthroughDescriptionAppleTv": "Use Apple's native Dolby decoder for Dolby Digital Plus, including Atmos. DTS and TrueHD still play as multichannel PCM. Turn off if you have no sound.",
@@ -510,9 +524,35 @@
     "shufflePlay": "Shuffle Play",
     "shuffleNotAvailableOffline": "Shuffle not available offline",
     "fileInfo": "File Info",
-    "deleteFromServer": "Delete from server",
-    "confirmDelete": "Delete this media and its files from your server?",
+    "deleteEpisodeFromServer": "Delete episode from server",
+    "deleteSeasonFromServer": "Delete season from server",
+    "deleteShowFromServer": "Delete show from server",
+    "deleteMovieFromServer": "Delete movie from server",
+    "deleteEpisodeTitle": "Delete this episode?",
+    "deleteSeasonTitle": "Delete this season?",
+    "deleteShowTitle": "Delete this show?",
+    "deleteMovieTitle": "Delete this movie?",
+    "deleteEpisodeConfirm": "Delete episode",
+    "deleteSeasonConfirm": "Delete season",
+    "deleteShowConfirm": "Delete show",
+    "deleteMovieConfirm": "Delete movie",
+    "deleteAnyway": "Delete anyway",
+    "confirmDeleteTarget": "Permanently delete ${title} from your server?",
     "deleteMultipleWarning": "This includes all episodes and their files.",
+    "deleteEpisodeCountWarning": {
+      "one": "This deletes all ${n} episode in it, and its file.",
+      "other": "This deletes all ${n} episodes in it, and their files."
+    },
+    "deleteMultiPartWarning": {
+      "one": "This item is stored as ${n} file, which will be deleted.",
+      "other": "This item is stored across ${n} files, and all of them will be deleted."
+    },
+    "deleteSharedFileHeading": {
+      "one": "${n} other episode is stored in the same file and will be deleted too:",
+      "other": "${n} other episodes are stored in the same file and will be deleted too:"
+    },
+    "deleteScopeUnverifiedProbeFailed": "Plezy could not check which files this will remove, so it may delete more than the item named above. Cancel and try again, or delete anyway.",
+    "deleteScopeUnverifiedNoFileInfo": "Your server did not provide file details for this item, so Plezy cannot check which files this will remove. It may delete more than the item named above.",
     "mediaDeletedSuccessfully": "Media item deleted successfully",
     "mediaFailedToDelete": "Failed to delete media item",
     "rate": "Rate",
@@ -590,6 +630,7 @@
     "pauseButton": "Pause",
     "playbackPaused": "Paused",
     "playbackResumed": "Playing",
+    "loadingVideo": "Loading video",
     "showPlaybackControls": "Show playback controls",
     "hidePlaybackControls": "Hide playback controls",
     "seekBackwardButton": "Seek backward ${seconds} seconds",
@@ -700,6 +741,8 @@
     "switchingToCompatiblePlayer": "Switching to compatible player...",
     "serverLimitTitle": "Playback failed",
     "serverLimitBody": "Server error (HTTP 500). A bandwidth/transcoding limit likely rejected this session. Ask the owner to adjust it.",
+    "mediaUnreadableTitle": "File unavailable",
+    "mediaUnreadableBody": "The server found this item but could not read its file (HTTP 404). The file was probably moved, deleted, or its storage is offline. Ask the server owner to check the file and rescan the library.",
     "logsUploaded": "Logs uploaded",
     "logsUploadFailed": "Failed to upload logs",
     "logId": "Log ID"
@@ -783,6 +826,8 @@
     "noConnectionsHint": "No connections — add one to use this profile.",
     "noConnections": "No connections",
     "plexHomeAccount": "Plex Home account",
+    "plexAccountChip": "Plex account: ${account}",
+    "plexAccountUserChip": "${user} via ${account}",
     "connectionDefault": "Default",
     "connectionAs": "as ${displayName}",
     "makeDefault": "Make default",
@@ -791,7 +836,7 @@
     "borrowAddTo": "Add to ${displayName}",
     "borrowExplain": "Borrow another profile's connection. PIN-protected profiles require a PIN.",
     "borrowEmpty": "Nothing to borrow yet.",
-    "borrowEmptySubtitle": "Connect Plex or Jellyfin to another profile first.",
+    "borrowEmptySubtitle": "Connect Plex, Jellyfin, or Emby to another profile first.",
     "borrowLoadFailed": "Available connections could not be loaded. Try again.",
     "borrowFromProfile": "From ${displayName}",
     "borrowConnectionBorrowed": "Connection borrowed.",
@@ -811,13 +856,13 @@
   "connections": {
     "sectionTitle": "Connections",
     "addConnection": "Add connection",
-    "addConnectionSubtitleNoProfile": "Sign in with Plex or connect a Jellyfin server",
-    "addConnectionSubtitleScoped": "Add to ${displayName}: Plex, Jellyfin, or another profile connection",
+    "addConnectionSubtitleNoProfile": "Sign in with Plex or connect a Jellyfin or Emby server",
+    "addConnectionSubtitleScoped": "Add to ${displayName}: Plex, Jellyfin, Emby, or another profile connection",
     "sessionExpiredOne": "Session expired for ${name}",
     "sessionExpiredMany": "Session expired for ${count} servers",
     "signInAgain": "Sign in again",
-    "editJellyfinTitle": "Edit Jellyfin connection",
-    "editJellyfinIntro": "Add or remove URLs for ${serverName}. Plezy will use the reachable URL with the lowest latency."
+    "editMediaBrowserTitle": "Edit ${product} connection",
+    "editMediaBrowserIntro": "Add or remove URLs for ${serverName}. Plezy will use the reachable URL with the lowest latency."
   },
   "discover": {
     "title": "Discover",
@@ -955,7 +1000,7 @@
     "title": "About",
     "openSourceLicenses": "Open Source Licenses",
     "versionLabel": "Version ${version}",
-    "appDescription": "A beautiful Plex and Jellyfin client for Flutter",
+    "appDescription": "A beautiful Plex, Jellyfin, and Emby client for Flutter",
     "viewLicensesDescription": "View licenses of third-party libraries"
   },
   "serverSelection": {
@@ -973,6 +1018,38 @@
     "clearLogs": "Clear Logs",
     "copyLogs": "Copy Logs",
     "uploadLogs": "Upload Logs"
+  },
+  "startup": {
+    "failedTitle": "Plezy could not start",
+    "failedBody": "Something went wrong during startup. The details below identify what failed.",
+    "failedBodyRepairable": "Plezy's saved settings file is damaged and has to be rebuilt before Plezy can start. Retrying will not help — choose Repair storage.",
+    "phaseLabel": "Step",
+    "showDetails": "Show details",
+    "hideDetails": "Hide details",
+    "copyDetails": "Copy details",
+    "detailsCopied": "Details copied to clipboard",
+    "uploadDetails": "Upload details",
+    "repairStorage": "Repair storage",
+    "repairTitle": "Repair stored data?",
+    "repairBodyCommon": "Plezy's settings file is damaged and cannot be read. Repairing resets every setting to its default.",
+    "repairBodyOneCredential": "One saved sign-in is damaged and cannot be read. Repairing removes just that one; your other settings are left alone.",
+    "repairBodySignInsKept": "Your servers and profiles should stay signed in.",
+    "repairBodySignInsLost": "The key protecting your saved sign-ins cannot be recovered from this file, so you will have to sign in to every server and profile again. Nothing on your media server is affected.",
+    "repairBodySessionsUncertain": "Trackers (MAL, AniList, Simkl, Trakt) and Seerr are stored separately and may or may not survive. Plezy will tell you exactly what it kept.",
+    "repairConfirm": "Repair",
+    "repairSucceeded": "Storage repaired",
+    "repairNeedsRestart": "Storage repaired — restart required",
+    "restartRequiredBody": "Your data was repaired, but Plezy has to start fresh before it can use it. Close Plezy and open it again.",
+    "quitPlezy": "Quit Plezy",
+    "repairFailed": "Repair failed",
+    "repairKeptSignIns": "Your servers and profiles are still signed in.",
+    "repairLostSignIns": "The key protecting your saved sign-ins could not be recovered. You will have to sign in to every server and profile again.",
+    "repairLostSessions": "At least one tracker or Seerr connection was lost and has to be reconnected.",
+    "backupTitle": "A copy of the damaged file was kept",
+    "backupWarning": "It contains your sign-in credentials. Do not upload or share it.",
+    "deleteBackup": "Delete copy",
+    "backupDeleted": "Copy deleted.",
+    "previousFailureTitle": "Plezy failed to start last time"
   },
   "licenses": {
     "relatedPackages": "Related Packages",
@@ -1108,18 +1185,16 @@
       "creator": "Creator",
       "composer": "Composer"
     },
-    "ratingSource": {
-      "critic": "Critics",
-      "audience": "Audience",
-      "imdb": "IMDb",
-      "tmdb": "TMDB",
-      "rottenTomatoes": "Rotten Tomatoes",
-      "simkl": "Simkl",
-      "mal": "MyAnimeList",
-      "anilist": "AniList",
-      "trakt": "Trakt",
-      "rottenTomatoesCritic": "Rotten Tomatoes critics",
-      "rottenTomatoesAudience": "Rotten Tomatoes audience"
+    "relation": {
+      "prequel": "Prequel",
+      "sequel": "Sequel",
+      "sideStory": "Side story",
+      "spinOff": "Spin-off",
+      "alternativeVersion": "Alternative version",
+      "summary": "Summary",
+      "parentStory": "Parent story",
+      "adaptation": "Adaptation",
+      "other": "Related"
     },
     "broadcast": "Airs ${day} at ${time}",
     "broadcastWithZone": "Airs ${day} at ${time} ${timezone}",
@@ -1160,17 +1235,6 @@
     "totalResults": {
       "one": "${n} result",
       "other": "${n} results"
-    },
-    "relation": {
-      "prequel": "Prequel",
-      "sequel": "Sequel",
-      "sideStory": "Side story",
-      "spinOff": "Spin-off",
-      "alternativeVersion": "Alternative version",
-      "summary": "Summary",
-      "parentStory": "Parent story",
-      "adaptation": "Adaptation",
-      "other": "Related"
     }
   },
   "liveTv": {
@@ -1592,7 +1656,6 @@
     "hdr": "HDR",
     "audioOutput": "Audio Output",
     "performanceOverlay": "Performance Overlay",
-    "audioPassthrough": "Audio Passthrough",
     "audioOutputDolbyAtmos": "Dolby Atmos",
     "audioOutputDolbyAudio": "Dolby Audio",
     "audioOutputSurround": "Surround",
@@ -1810,7 +1873,8 @@
       "mal": "MyAnimeList",
       "anilist": "AniList",
       "simkl": "Simkl",
-      "seerr": "Seerr"
+      "seerr": "Seerr",
+      "mdblist": "MDBList"
     },
     "deviceCode": {
       "title": "Activate Plezy on ${service}",
@@ -1843,12 +1907,12 @@
     }
   },
   "addServer": {
-    "addJellyfinTitle": "Add Jellyfin server",
+    "addMediaBrowserTitle": "Add ${product} server",
     "serverUrls": "Server URLs",
     "serverUrlsHelper": "Multiple URLs allowed, separated by commas.",
     "findServer": "Find server",
-    "searchingLocalServers": "Looking for local Jellyfin servers...",
-    "localServers": "Local Jellyfin servers",
+    "searchingLocalMediaBrowserServers": "Looking for local ${product} servers...",
+    "localMediaBrowserServers": "Local ${product} servers",
     "username": "Username",
     "password": "Password",
     "signIn": "Sign in",
@@ -1860,15 +1924,15 @@
     "addPlexTitle": "Sign in with Plex",
     "pinExpired": "PIN expired before sign-in. Please try again.",
     "failedToRegisterAccount": "Failed to register account: ${error}",
-    "enterJellyfinUrlError": "Enter your Jellyfin server URL",
+    "enterMediaBrowserUrlError": "Enter your ${product} server URL",
     "addConnectionTitle": "Add connection",
     "addConnectionTitleScoped": "Add to ${name}",
     "signInWithPlexCard": "Sign in with Plex",
     "signInWithPlexCardSubtitle": "Authorize this device. Shared servers are added.",
     "signInWithPlexCardSubtitleScoped": "Authorize a Plex account. Home users become profiles.",
-    "connectToJellyfinCard": "Connect to Jellyfin",
-    "connectToJellyfinCardSubtitle": "Enter your server URL, username, and password.",
-    "connectToJellyfinCardSubtitleScoped": "Sign in to a Jellyfin server. Binds to ${name}.",
+    "connectToMediaBrowserCard": "Connect to ${product}",
+    "connectToMediaBrowserCardSubtitle": "Enter your server URL, username, and password.",
+    "connectToMediaBrowserCardSubtitleScoped": "Sign in to your ${product} server. Binds to ${name}.",
     "borrowFromAnotherProfile": "Borrow from another profile",
     "borrowFromAnotherProfileSubtitle": "Reuse another profile's connection. PIN-protected profiles require a PIN."
   }

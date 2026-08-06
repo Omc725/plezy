@@ -5,13 +5,13 @@ import '../media/ids.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../media/library_query.dart';
-import '../media/media_backend.dart';
 import '../media/media_hub.dart';
 import '../media/media_item.dart';
 import '../media/media_server_client.dart';
 import '../media/media_sort.dart';
 import '../services/settings_service.dart';
 import '../widgets/settings_builder.dart';
+import '../widgets/system_bottom_inset.dart';
 import '../utils/app_logger.dart';
 import '../utils/continuation_pagination_coordinator.dart';
 import '../utils/error_message_utils.dart';
@@ -275,7 +275,7 @@ class _HubDetailScreenState extends State<HubDetailScreen>
   }
 
   bool _shouldUsePaginatedLoader(MediaServerClient client) =>
-      client.backend == MediaBackend.jellyfin && widget.hub.id.endsWith('.recent');
+      client.backend.usesMediaBrowserApi && widget.hub.id.endsWith('.recent');
 
   @override
   Future<LibraryPage<MediaItem>> fetchPage(int start, int size, AbortController? abort) async {
@@ -357,7 +357,7 @@ class _HubDetailScreenState extends State<HubDetailScreen>
 
       _applySort();
       if (!usesCustomLoader && !_usesPaginatedLoader && client != null && loadedCount < totalCount) {
-        _replaceContinuationItems = client.backend == MediaBackend.plex;
+        _replaceContinuationItems = !client.backend.usesMediaBrowserApi;
         if (_replaceContinuationItems) {
           _continuation.setContinuation(startIndex: 0, totalCount: 1);
         } else {
@@ -611,6 +611,7 @@ class _HubDetailScreenState extends State<HubDetailScreen>
                     onNavigateUp: () => _focusNodeForIndex(_filteredItems.length - 1).requestFocus(),
                     onBack: handleBackFromContent,
                   ),
+                const SliverSystemBottomInset(),
               ],
             ),
           ),

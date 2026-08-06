@@ -11,7 +11,7 @@
     "waitingForAuth": "Warte auf die Authentifizierung …\nMelde dich über deinen Browser an.",
     "useBrowser": "Browser verwenden",
     "or": "oder",
-    "connectToJellyfin": "Mit Jellyfin verbinden",
+    "connectToMediaBrowser": "",
     "useQuickConnect": "Quick Connect verwenden",
     "quickConnectInstructions": "Öffne Quick Connect in Jellyfin und gib diesen Code ein.",
     "quickConnectWaiting": "Warte auf Bestätigung…",
@@ -64,7 +64,20 @@
     "loading": "Wird geladen …",
     "fullscreen": "Vollbild",
     "exitFullscreen": "Vollbild verlassen",
-    "pressBackAgainToExit": "Zum Beenden erneut Zurück drücken"
+    "pressBackAgainToExit": "Zum Beenden erneut Zurück drücken",
+    "ratingSource": {
+      "critic": "",
+      "audience": "",
+      "imdb": "",
+      "tmdb": "",
+      "rottenTomatoes": "",
+      "simkl": "",
+      "mal": "",
+      "anilist": "",
+      "trakt": "",
+      "rottenTomatoesCritic": "",
+      "rottenTomatoesAudience": ""
+    }
   },
   "screens": {
     "licenses": "Lizenzen",
@@ -505,9 +518,35 @@
     "shufflePlay": "Zufallswiedergabe",
     "shuffleNotAvailableOffline": "Zufallswiedergabe ist offline nicht verfügbar",
     "fileInfo": "Dateiinfo",
-    "deleteFromServer": "Vom Server löschen",
-    "confirmDelete": "Dieses Medium und seine Dateien von deinem Server löschen?",
+    "deleteEpisodeFromServer": "",
+    "deleteSeasonFromServer": "",
+    "deleteShowFromServer": "",
+    "deleteMovieFromServer": "",
+    "deleteEpisodeTitle": "",
+    "deleteSeasonTitle": "",
+    "deleteShowTitle": "",
+    "deleteMovieTitle": "",
+    "deleteEpisodeConfirm": "",
+    "deleteSeasonConfirm": "",
+    "deleteShowConfirm": "",
+    "deleteMovieConfirm": "",
+    "deleteAnyway": "",
+    "confirmDeleteTarget": "",
     "deleteMultipleWarning": "Dies umfasst alle Episoden und deren Dateien.",
+    "deleteEpisodeCountWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteMultiPartWarning": {
+      "one": "",
+      "other": ""
+    },
+    "deleteSharedFileHeading": {
+      "one": "",
+      "other": ""
+    },
+    "deleteScopeUnverifiedProbeFailed": "",
+    "deleteScopeUnverifiedNoFileInfo": "",
     "mediaDeletedSuccessfully": "Medienelement gelöscht",
     "mediaFailedToDelete": "Medienelement konnte nicht gelöscht werden",
     "rate": "Bewerten",
@@ -585,6 +624,7 @@
     "pauseButton": "Pause",
     "playbackPaused": "",
     "playbackResumed": "",
+    "loadingVideo": "",
     "showPlaybackControls": "Wiedergabesteuerung anzeigen",
     "hidePlaybackControls": "Wiedergabesteuerung ausblenden",
     "seekBackwardButton": "${seconds} Sekunden zurück",
@@ -695,6 +735,8 @@
     "switchingToCompatiblePlayer": "Wechsel zu einem kompatiblen Player …",
     "serverLimitTitle": "Wiedergabe fehlgeschlagen",
     "serverLimitBody": "Serverfehler (HTTP 500). Vermutlich hat ein Bandbreiten- oder Transkodierungslimit diese Sitzung abgelehnt. Bitte den Besitzer, das Limit anzupassen.",
+    "mediaUnreadableTitle": "",
+    "mediaUnreadableBody": "",
     "logsUploaded": "Protokolle hochgeladen",
     "logsUploadFailed": "Protokolle konnten nicht hochgeladen werden",
     "logId": "Protokoll-ID"
@@ -778,6 +820,8 @@
     "noConnectionsHint": "Keine Verbindungen — füge eine hinzu, um dieses Profil zu nutzen.",
     "noConnections": "Keine Verbindungen",
     "plexHomeAccount": "Plex Home-Konto",
+    "plexAccountChip": "Plex-Konto: ${account}",
+    "plexAccountUserChip": "${user} über ${account}",
     "connectionDefault": "Standard",
     "connectionAs": "als ${displayName}",
     "makeDefault": "Als Standard festlegen",
@@ -811,8 +855,8 @@
     "sessionExpiredOne": "Sitzung für ${name} abgelaufen",
     "sessionExpiredMany": "Sitzungen für ${count} Server abgelaufen",
     "signInAgain": "Erneut anmelden",
-    "editJellyfinTitle": "Jellyfin-Verbindung bearbeiten",
-    "editJellyfinIntro": "Füge URLs für ${serverName} hinzu oder entferne sie. Plezy verwendet die erreichbare URL mit der geringsten Latenz."
+    "editMediaBrowserTitle": "",
+    "editMediaBrowserIntro": ""
   },
   "discover": {
     "title": "Entdecken",
@@ -969,6 +1013,38 @@
     "copyLogs": "Protokolle kopieren",
     "uploadLogs": "Protokolle hochladen"
   },
+  "startup": {
+    "failedTitle": "",
+    "failedBody": "",
+    "failedBodyRepairable": "",
+    "phaseLabel": "",
+    "showDetails": "",
+    "hideDetails": "",
+    "copyDetails": "",
+    "detailsCopied": "",
+    "uploadDetails": "",
+    "repairStorage": "",
+    "repairTitle": "",
+    "repairBodyCommon": "",
+    "repairBodyOneCredential": "",
+    "repairBodySignInsKept": "",
+    "repairBodySignInsLost": "",
+    "repairBodySessionsUncertain": "",
+    "repairConfirm": "",
+    "repairSucceeded": "",
+    "repairNeedsRestart": "",
+    "restartRequiredBody": "",
+    "quitPlezy": "",
+    "repairFailed": "",
+    "repairKeptSignIns": "",
+    "repairLostSignIns": "",
+    "repairLostSessions": "",
+    "backupTitle": "",
+    "backupWarning": "",
+    "deleteBackup": "",
+    "backupDeleted": "",
+    "previousFailureTitle": ""
+  },
   "licenses": {
     "relatedPackages": "Verwandte Pakete",
     "license": "Lizenz",
@@ -1103,18 +1179,16 @@
       "creator": "",
       "composer": ""
     },
-    "ratingSource": {
-      "critic": "",
-      "audience": "",
-      "imdb": "",
-      "tmdb": "",
-      "rottenTomatoes": "",
-      "simkl": "",
-      "mal": "",
-      "anilist": "",
-      "trakt": "",
-      "rottenTomatoesCritic": "",
-      "rottenTomatoesAudience": ""
+    "relation": {
+      "prequel": "",
+      "sequel": "",
+      "sideStory": "",
+      "spinOff": "",
+      "alternativeVersion": "",
+      "summary": "",
+      "parentStory": "",
+      "adaptation": "",
+      "other": ""
     },
     "broadcast": "",
     "broadcastWithZone": "",
@@ -1154,17 +1228,6 @@
     },
     "totalResults": {
       "one": "",
-      "other": ""
-    },
-    "relation": {
-      "prequel": "",
-      "sequel": "",
-      "sideStory": "",
-      "spinOff": "",
-      "alternativeVersion": "",
-      "summary": "",
-      "parentStory": "",
-      "adaptation": "",
       "other": ""
     }
   },
@@ -1587,7 +1650,6 @@
     "hdr": "HDR",
     "audioOutput": "Audioausgabe",
     "performanceOverlay": "Leistungsanzeige",
-    "audioPassthrough": "Audio-Durchleitung",
     "audioOutputDolbyAtmos": "Dolby Atmos",
     "audioOutputDolbyAudio": "Dolby Audio",
     "audioOutputSurround": "Surround",
@@ -1805,7 +1867,8 @@
       "mal": "MyAnimeList",
       "anilist": "AniList",
       "simkl": "Simkl",
-      "seerr": "Seerr"
+      "seerr": "Seerr",
+      "mdblist": ""
     },
     "deviceCode": {
       "title": "Plezy auf ${service} aktivieren",
@@ -1838,12 +1901,12 @@
     }
   },
   "addServer": {
-    "addJellyfinTitle": "Jellyfin-Server hinzufügen",
+    "addMediaBrowserTitle": "",
     "serverUrls": "Server-URLs",
     "serverUrlsHelper": "Mehrere URLs möglich, durch Kommas getrennt.",
     "findServer": "Server finden",
-    "searchingLocalServers": "Suche nach lokalen Jellyfin-Servern …",
-    "localServers": "Lokale Jellyfin-Server",
+    "searchingLocalMediaBrowserServers": "",
+    "localMediaBrowserServers": "",
     "username": "Benutzername",
     "password": "Passwort",
     "signIn": "Anmelden",
@@ -1855,15 +1918,15 @@
     "addPlexTitle": "Mit Plex anmelden",
     "pinExpired": "PIN ist vor der Anmeldung abgelaufen. Bitte erneut versuchen.",
     "failedToRegisterAccount": "Konto konnte nicht registriert werden: ${error}",
-    "enterJellyfinUrlError": "Gib die URL deines Jellyfin-Servers ein",
+    "enterMediaBrowserUrlError": "",
     "addConnectionTitle": "Verbindung hinzufügen",
     "addConnectionTitleScoped": "Zu ${name} hinzufügen",
     "signInWithPlexCard": "Mit Plex anmelden",
     "signInWithPlexCardSubtitle": "Dieses Gerät autorisieren. Geteilte Server werden hinzugefügt.",
     "signInWithPlexCardSubtitleScoped": "Ein Plex-Konto autorisieren. Home-Benutzer werden zu Profilen.",
-    "connectToJellyfinCard": "Mit Jellyfin verbinden",
-    "connectToJellyfinCardSubtitle": "Gib Server-URL, Benutzername und Passwort ein.",
-    "connectToJellyfinCardSubtitleScoped": "Bei einem Jellyfin-Server anmelden. Wird mit ${name} verknüpft.",
+    "connectToMediaBrowserCard": "",
+    "connectToMediaBrowserCardSubtitle": "",
+    "connectToMediaBrowserCardSubtitleScoped": "",
     "borrowFromAnotherProfile": "Von einem anderen Profil ausleihen",
     "borrowFromAnotherProfileSubtitle": "Verbindung eines anderen Profils wiederverwenden. PIN-geschützte Profile erfordern eine PIN."
   }
